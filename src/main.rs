@@ -1,5 +1,6 @@
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, App, HttpResponse, HttpServer, Responder};
 
+#[get("/")]
 async fn index() -> impl Responder {
     HttpResponse::Ok().body("Hello")
 }
@@ -8,7 +9,7 @@ async fn index() -> impl Responder {
 async fn main() -> std::io::Result<()> {
     let server = HttpServer::new(|| {
         App::new()
-            .route("/", web::get().to(index))
+            .service(index)
     });
     server.bind("127.0.0.1:8000")?.run().await
 }
