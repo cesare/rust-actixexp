@@ -18,6 +18,12 @@ impl Servant {
     }
 }
 
+#[get["/servants"]]
+async fn servants() -> impl Responder {
+    let servants: Vec<Servant> = vec![];
+    HttpResponse::Ok().json(servants)
+}
+
 #[get["/servants/sample"]]
 async fn servants_sample() -> impl Responder {
     HttpResponse::Ok().json(Servant::new("Meltryllis", "alterego"))
@@ -33,6 +39,7 @@ async fn main() -> std::io::Result<()> {
     let server = HttpServer::new(|| {
         App::new()
             .service(index)
+            .service(servants)
             .service(servants_sample)
     });
     server.bind("127.0.0.1:8000")?.run().await
