@@ -24,11 +24,6 @@ async fn servants() -> impl Responder {
     HttpResponse::Ok().json(servants)
 }
 
-#[get["/servants/sample"]]
-async fn servants_sample() -> impl Responder {
-    HttpResponse::Ok().json(Servant::new("Meltryllis", "alterego"))
-}
-
 #[get("/")]
 async fn index() -> impl Responder {
     HttpResponse::Ok().body("Hello")
@@ -40,7 +35,6 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(index)
             .service(servants)
-            .service(servants_sample)
     });
     server.bind("127.0.0.1:8000")?.run().await
 }
