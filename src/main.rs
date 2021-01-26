@@ -9,15 +9,6 @@ struct Servant {
     class: String,
 }
 
-impl Servant {
-    fn new(name: impl Into<String>, class: impl Into<String>) -> Self {
-        Servant {
-            name: name.into(),
-            class: class.into(),
-        }
-    }
-}
-
 #[get["/servants"]]
 async fn servants() -> impl Responder {
     let servants: Vec<Servant> = vec![];
