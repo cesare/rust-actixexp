@@ -7,6 +7,7 @@ use tokio_postgres::{NoTls, Error};
 #[derive(Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "servants")]
 struct Servant {
+    id: i32,
     name: String,
     class: String,
 }
@@ -27,7 +28,7 @@ async fn list_servants() -> Result<Vec<Servant>, Error> {
         }
     });
 
-    let rows = client.query("select name, class from servants", &[]).await?;
+    let rows = client.query("select id, name, class from servants", &[]).await?;
     let count = rows.len();
     let mut results = Vec::with_capacity(count);
     for row in rows {
