@@ -11,11 +11,21 @@ struct Servant {
     class: String,
 }
 
-async fn list_servants() -> Result<Vec<Servant>, Error> {
-    let (client, connection) =
-        tokio_postgres::connect("host=localhost user=postgres", NoTls).await?;
+fn connection_parameters() -> String {
+    let username = std::env::var("POSTGRES_USER").unwrap_or("postgres".to_string());
+    let password = std::env::var("POSTGRES_PASSWORD").unwrap_or("postgres".to_string());
+    format!("host=localhost user={} password={} dbname=actixexp", username, password)
+}
 
-    connection.await?;
+async fn list_servants() -> Result<Vec<Servant>, Error> {
+    let parameters = connection_parameters();
+    let (client, connection) = tokio_postgres::connect(&parameters, NoTls).await?;
+
+    tokio::spawn(async move {
+        if let Err(e) = connection.await {
+            eprintln!("connection failed: {}", e);
+        }
+    });
 
     let rows = client.query("select name, class from servants", &[]).await?;
     let count = rows.len();
