@@ -1,9 +1,10 @@
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use anyhow::Result;
 use deadpool_postgres::{Config, Client, ManagerConfig, Pool, RecyclingMethod};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_pg_mapper_derive::PostgresMapper;
-use tokio_postgres::{NoTls, Error};
+use tokio_postgres::NoTls;
 
 #[derive(Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "servants")]
@@ -26,12 +27,12 @@ fn create_pool_config() -> Config {
     config
 }
 
-async fn list_servants(client: &Client) -> Result<Vec<Servant>, Error> {
+async fn list_servants(client: &Client) -> Result<Vec<Servant>> {
     let rows = client.query("select id, name, class from servants", &[]).await?;
     let count = rows.len();
     let mut results = Vec::with_capacity(count);
     for row in rows {
-        let result = Servant::from_row(row).unwrap();
+        let result = Servant::from_row(row)?;
         results.push(result);
     }
     Ok(results)
