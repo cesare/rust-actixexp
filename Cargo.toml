@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 actix-rt = "~2.0.0-beta.2"
 actix-web = "~4.0.0-beta.1"
+anyhow = "~1.0.38"
 deadpool-postgres = "~0.7.0"
 serde = "~1.0.120"
 tokio = "~1.1.0"
