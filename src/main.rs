@@ -1,4 +1,5 @@
-use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use deadpool_postgres::{Config, Client, ManagerConfig, Pool, RecyclingMethod};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -12,22 +13,20 @@ struct Servant {
     class: String,
 }
 
-fn connection_parameters() -> String {
-    let username = std::env::var("POSTGRES_USER").unwrap_or("postgres".to_string());
-    let password = std::env::var("POSTGRES_PASSWORD").unwrap_or("postgres".to_string());
-    format!("host=localhost user={} password={} dbname=actixexp", username, password)
+fn create_pool_config() -> Config {
+    let mut config = Config::new();
+    config.host     = Some("localhost".to_string());
+    config.dbname   = Some("actixexp".to_string());
+    config.user     = std::env::var("POSTGRES_USER").ok();
+    config.password = std::env::var("POSTGRES_PASSWORD").ok();
+
+    let manager_config = ManagerConfig { recycling_method: RecyclingMethod::Fast };
+    config.manager = Some(manager_config);
+
+    config
 }
 
-async fn list_servants() -> Result<Vec<Servant>, Error> {
-    let parameters = connection_parameters();
-    let (client, connection) = tokio_postgres::connect(&parameters, NoTls).await?;
-
-    tokio::spawn(async move {
-        if let Err(e) = connection.await {
-            eprintln!("connection failed: {}", e);
-        }
-    });
-
+async fn list_servants(client: &Client) -> Result<Vec<Servant>, Error> {
     let rows = client.query("select id, name, class from servants", &[]).await?;
     let count = rows.len();
     let mut results = Vec::with_capacity(count);
@@ -39,8 +38,9 @@ async fn list_servants() -> Result<Vec<Servant>, Error> {
 }
 
 #[get["/servants"]]
-async fn servants() -> impl Responder {
-    match list_servants().await {
+async fn servants(db_pool: web::Data<Pool>) -> impl Responder {
+    let client = db_pool.get().await.unwrap();
+    match list_servants(&client).await {
         Ok(servants) => HttpResponse::Ok().json(servants),
         Err(_) => {
             let empty: Vec<Servant> = vec![];
@@ -56,8 +56,12 @@ async fn index() -> impl Responder {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    let server = HttpServer::new(|| {
+    let pool_config = create_pool_config();
+    let pool = pool_config.create_pool(NoTls).unwrap();
+
+    let server = HttpServer::new(move || {
         App::new()
+            .data(pool.clone())
             .service(index)
             .service(servants)
     });
