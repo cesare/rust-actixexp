@@ -1,4 +1,4 @@
-use actix_web::{get, web, App, HttpResponse, HttpServer, Responder, ResponseError};
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, ResponseError};
 use anyhow::Result;
 use deadpool_postgres::{Config, Client, ManagerConfig, Pool, RecyclingMethod};
 use serde::{Deserialize, Serialize};
@@ -47,6 +47,22 @@ fn create_pool_config() -> Config {
     config
 }
 
+#[derive(Deserialize)]
+struct CreateServantRequest {
+    name: String,
+    class: String,
+}
+
+async fn create_servant(client: &Client, request: CreateServantRequest) -> Result<Servant, ActixexpError> {
+    let rows = client.query("insert into servants (name, class) values ($1, $2) returning id, name, class", &[&request.name, &request.class]).await?;
+    rows.iter()
+        .take(1)
+        .map(|row| Servant::from_row_ref(row).unwrap())
+        .collect::<Vec<Servant>>()
+        .pop()
+        .ok_or(ActixexpError::NotFound)
+}
+
 async fn list_servants(client: &Client) -> Result<Vec<Servant>, ActixexpError> {
     let rows = client.query("select id, name, class from servants", &[]).await?;
     let results = rows.iter()
@@ -63,6 +79,14 @@ async fn show_servant(client: &Client, id: i32) -> Result<Servant, ActixexpError
         .collect::<Vec<Servant>>()
         .pop()
         .ok_or(ActixexpError::NotFound)
+}
+
+#[post("/servants")]
+async fn register_servant(db_pool: web::Data<Pool>, form: web::Form<CreateServantRequest>) -> Result<HttpResponse, ActixexpError> {
+    let client = db_pool.get().await?;
+    let result = create_servant(&client, form.into_inner()).await?;
+    let response = HttpResponse::Created().json(result);
+    Ok(response)
 }
 
 #[get["/servants"]]
@@ -95,6 +119,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .data(pool.clone())
             .service(index)
+            .service(register_servant)
             .service(servants)
             .service(servant)
     });
