@@ -1,4 +1,4 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, ResponseError};
+use actix_web::{delete, get, post, web, App, HttpResponse, HttpServer, Responder, ResponseError};
 use anyhow::Result;
 use deadpool_postgres::{Config, Client, ManagerConfig, Pool, RecyclingMethod};
 use serde::{Deserialize, Serialize};
@@ -81,6 +81,16 @@ async fn show_servant(client: &Client, id: i32) -> Result<Servant, ActixexpError
         .ok_or(ActixexpError::NotFound)
 }
 
+async fn delete_servant(client: &Client, id: i32) -> Result<Servant, ActixexpError> {
+    let rows = client.query("delete from servants where id = $1 returning id, name, class", &[&id]).await?;
+    rows.iter()
+        .take(1)
+        .map(|row| Servant::from_row_ref(row).unwrap())
+        .collect::<Vec<Servant>>()
+        .pop()
+        .ok_or(ActixexpError::NotFound)
+}
+
 #[post("/servants")]
 async fn register_servant(db_pool: web::Data<Pool>, form: web::Form<CreateServantRequest>) -> Result<HttpResponse, ActixexpError> {
     let client = db_pool.get().await?;
@@ -105,6 +115,14 @@ async fn servant(db_pool: web::Data<Pool>, web::Path(id): web::Path<i32>) -> Res
     Ok(response)
 }
 
+#[delete("/servants/{id}")]
+async fn destroy_servant(db_pool: web::Data<Pool>, web::Path(id): web::Path<i32>) -> Result<HttpResponse, ActixexpError> {
+    let client = db_pool.get().await?;
+    let result = delete_servant(&client, id).await?;
+    let response = HttpResponse::Ok().json(result);
+    Ok(response)
+}
+
 #[get("/")]
 async fn index() -> impl Responder {
     HttpResponse::Ok().body("Hello")
@@ -122,6 +140,7 @@ async fn main() -> std::io::Result<()> {
             .service(register_servant)
             .service(servants)
             .service(servant)
+            .service(destroy_servant)
     });
     server.bind("127.0.0.1:8000")?.run().await
 }
