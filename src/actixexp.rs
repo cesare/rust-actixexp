@@ -4,7 +4,7 @@ use deadpool_postgres::{Config, ManagerConfig, Pool, RecyclingMethod};
 use tokio_postgres::NoTls;
 
 mod app;
-use self::app::db::{self};
+use self::app::db::{self, ServantRepository};
 use self::app::errors::ActixexpError;
 
 fn create_pool_config() -> Config {
@@ -23,7 +23,7 @@ fn create_pool_config() -> Config {
 #[post("/servants")]
 async fn register_servant(db_pool: web::Data<Pool>, form: web::Form<db::CreateServantRequest>) -> Result<HttpResponse, ActixexpError> {
     let client = db_pool.get().await?;
-    let result = db::create_servant(&client, form.into_inner()).await?;
+    let result = ServantRepository::new(client).create(form.into_inner()).await?;
     let response = HttpResponse::Created().json(result);
     Ok(response)
 }
@@ -31,7 +31,7 @@ async fn register_servant(db_pool: web::Data<Pool>, form: web::Form<db::CreateSe
 #[get["/servants"]]
 async fn servants(db_pool: web::Data<Pool>) -> Result<HttpResponse, ActixexpError> {
     let client = db_pool.get().await?;
-    let results = db::list_servants(&client).await?;
+    let results = ServantRepository::new(client).list().await?;
     let response = HttpResponse::Ok().json(results);
     Ok(response)
 }
@@ -39,7 +39,7 @@ async fn servants(db_pool: web::Data<Pool>) -> Result<HttpResponse, ActixexpErro
 #[get("/servants/{id}")]
 async fn servant(db_pool: web::Data<Pool>, web::Path(id): web::Path<i32>) -> Result<HttpResponse, ActixexpError> {
     let client = db_pool.get().await?;
-    let result = db::show_servant(&client, id).await?;
+    let result = ServantRepository::new(client).show(id).await?;
     let response = HttpResponse::Ok().json(result);
     Ok(response)
 }
@@ -47,7 +47,7 @@ async fn servant(db_pool: web::Data<Pool>, web::Path(id): web::Path<i32>) -> Res
 #[delete("/servants/{id}")]
 async fn destroy_servant(db_pool: web::Data<Pool>, web::Path(id): web::Path<i32>) -> Result<HttpResponse, ActixexpError> {
     let client = db_pool.get().await?;
-    let result = db::delete_servant(&client, id).await?;
+    let result = ServantRepository::new(client).delete(id).await?;
     let response = HttpResponse::Ok().json(result);
     Ok(response)
 }
