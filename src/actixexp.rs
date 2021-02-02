@@ -1,12 +1,10 @@
 use actix_web::{delete, get, post, web, App, HttpResponse, HttpServer, Responder};
 use anyhow::Result;
-use deadpool_postgres::{Config, Client, ManagerConfig, Pool, RecyclingMethod};
-use serde::{Deserialize};
-use tokio_pg_mapper::FromTokioPostgresRow;
+use deadpool_postgres::{Config, ManagerConfig, Pool, RecyclingMethod};
 use tokio_postgres::NoTls;
 
 mod app;
-use self::app::models::Servant;
+use self::app::db::{self};
 use self::app::errors::ActixexpError;
 
 fn create_pool_config() -> Config {
@@ -22,54 +20,10 @@ fn create_pool_config() -> Config {
     config
 }
 
-#[derive(Deserialize)]
-struct CreateServantRequest {
-    name: String,
-    class: String,
-}
-
-async fn create_servant(client: &Client, request: CreateServantRequest) -> Result<Servant, ActixexpError> {
-    let rows = client.query("insert into servants (name, class) values ($1, $2) returning id, name, class", &[&request.name, &request.class]).await?;
-    rows.iter()
-        .take(1)
-        .map(|row| Servant::from_row_ref(row).unwrap())
-        .collect::<Vec<Servant>>()
-        .pop()
-        .ok_or(ActixexpError::NotFound)
-}
-
-async fn list_servants(client: &Client) -> Result<Vec<Servant>, ActixexpError> {
-    let rows = client.query("select id, name, class from servants", &[]).await?;
-    let results = rows.iter()
-        .map(|row| Servant::from_row_ref(row).unwrap())
-        .collect();
-    Ok(results)
-}
-
-async fn show_servant(client: &Client, id: i32) -> Result<Servant, ActixexpError> {
-    let rows = client.query("select id, name, class from servants where id = $1", &[&id]).await?;
-    rows.iter()
-        .take(1)
-        .map(|row| Servant::from_row_ref(row).unwrap())
-        .collect::<Vec<Servant>>()
-        .pop()
-        .ok_or(ActixexpError::NotFound)
-}
-
-async fn delete_servant(client: &Client, id: i32) -> Result<Servant, ActixexpError> {
-    let rows = client.query("delete from servants where id = $1 returning id, name, class", &[&id]).await?;
-    rows.iter()
-        .take(1)
-        .map(|row| Servant::from_row_ref(row).unwrap())
-        .collect::<Vec<Servant>>()
-        .pop()
-        .ok_or(ActixexpError::NotFound)
-}
-
 #[post("/servants")]
-async fn register_servant(db_pool: web::Data<Pool>, form: web::Form<CreateServantRequest>) -> Result<HttpResponse, ActixexpError> {
+async fn register_servant(db_pool: web::Data<Pool>, form: web::Form<db::CreateServantRequest>) -> Result<HttpResponse, ActixexpError> {
     let client = db_pool.get().await?;
-    let result = create_servant(&client, form.into_inner()).await?;
+    let result = db::create_servant(&client, form.into_inner()).await?;
     let response = HttpResponse::Created().json(result);
     Ok(response)
 }
@@ -77,7 +31,7 @@ async fn register_servant(db_pool: web::Data<Pool>, form: web::Form<CreateServan
 #[get["/servants"]]
 async fn servants(db_pool: web::Data<Pool>) -> Result<HttpResponse, ActixexpError> {
     let client = db_pool.get().await?;
-    let results = list_servants(&client).await?;
+    let results = db::list_servants(&client).await?;
     let response = HttpResponse::Ok().json(results);
     Ok(response)
 }
@@ -85,7 +39,7 @@ async fn servants(db_pool: web::Data<Pool>) -> Result<HttpResponse, ActixexpErro
 #[get("/servants/{id}")]
 async fn servant(db_pool: web::Data<Pool>, web::Path(id): web::Path<i32>) -> Result<HttpResponse, ActixexpError> {
     let client = db_pool.get().await?;
-    let result = show_servant(&client, id).await?;
+    let result = db::show_servant(&client, id).await?;
     let response = HttpResponse::Ok().json(result);
     Ok(response)
 }
@@ -93,7 +47,7 @@ async fn servant(db_pool: web::Data<Pool>, web::Path(id): web::Path<i32>) -> Res
 #[delete("/servants/{id}")]
 async fn destroy_servant(db_pool: web::Data<Pool>, web::Path(id): web::Path<i32>) -> Result<HttpResponse, ActixexpError> {
     let client = db_pool.get().await?;
-    let result = delete_servant(&client, id).await?;
+    let result = db::delete_servant(&client, id).await?;
     let response = HttpResponse::Ok().json(result);
     Ok(response)
 }
