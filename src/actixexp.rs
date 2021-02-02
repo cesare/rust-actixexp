@@ -1,11 +1,9 @@
-use actix_web::{delete, get, post, web, App, HttpResponse, HttpServer, Responder};
-use anyhow::Result;
-use deadpool_postgres::{Config, ManagerConfig, Pool, RecyclingMethod};
+use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use deadpool_postgres::{Config, ManagerConfig, RecyclingMethod};
 use tokio_postgres::NoTls;
 
 mod app;
-use self::app::db::{self, ServantRepository};
-use self::app::errors::ActixexpError;
+use self::app::handlers::{self};
 
 fn create_pool_config() -> Config {
     let mut config = Config::new();
@@ -18,38 +16,6 @@ fn create_pool_config() -> Config {
     config.manager = Some(manager_config);
 
     config
-}
-
-#[post("/servants")]
-async fn register_servant(db_pool: web::Data<Pool>, form: web::Form<db::CreateServantRequest>) -> Result<HttpResponse, ActixexpError> {
-    let client = db_pool.get().await?;
-    let result = ServantRepository::new(client).create(form.into_inner()).await?;
-    let response = HttpResponse::Created().json(result);
-    Ok(response)
-}
-
-#[get["/servants"]]
-async fn servants(db_pool: web::Data<Pool>) -> Result<HttpResponse, ActixexpError> {
-    let client = db_pool.get().await?;
-    let results = ServantRepository::new(client).list().await?;
-    let response = HttpResponse::Ok().json(results);
-    Ok(response)
-}
-
-#[get("/servants/{id}")]
-async fn servant(db_pool: web::Data<Pool>, web::Path(id): web::Path<i32>) -> Result<HttpResponse, ActixexpError> {
-    let client = db_pool.get().await?;
-    let result = ServantRepository::new(client).show(id).await?;
-    let response = HttpResponse::Ok().json(result);
-    Ok(response)
-}
-
-#[delete("/servants/{id}")]
-async fn destroy_servant(db_pool: web::Data<Pool>, web::Path(id): web::Path<i32>) -> Result<HttpResponse, ActixexpError> {
-    let client = db_pool.get().await?;
-    let result = ServantRepository::new(client).delete(id).await?;
-    let response = HttpResponse::Ok().json(result);
-    Ok(response)
 }
 
 #[get("/")]
@@ -66,10 +32,10 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .data(pool.clone())
             .service(index)
-            .service(register_servant)
-            .service(servants)
-            .service(servant)
-            .service(destroy_servant)
+            .service(handlers::servant::create)
+            .service(handlers::servant::list)
+            .service(handlers::servant::show)
+            .service(handlers::servant::destroy)
     });
     server.bind("127.0.0.1:8000")?.run().await
 }
