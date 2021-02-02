@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["SAWADA Tadashi <cesare@mayverse.jp>"]
 edition = "2018"
 
+[[bin]]
+name = "actixexp"
+path = "src/actixexp.rs"
+
 [dependencies]
 actix-rt = "~2.0.0-beta.2"
 actix-web = "~4.0.0-beta.1"
