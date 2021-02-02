@@ -1,32 +1,13 @@
-use actix_web::{delete, get, post, web, App, HttpResponse, HttpServer, Responder, ResponseError};
+use actix_web::{delete, get, post, web, App, HttpResponse, HttpServer, Responder};
 use anyhow::Result;
 use deadpool_postgres::{Config, Client, ManagerConfig, Pool, RecyclingMethod};
 use serde::{Deserialize};
-use thiserror::Error;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::NoTls;
 
 mod app;
 use self::app::models::Servant;
-
-#[derive(Error, Debug)]
-enum ActixexpError {
-    #[error("Not Found")]
-    NotFound,
-    #[error("connection pool faild")]
-    PoolFailed(#[from] deadpool_postgres::PoolError),
-    #[error("query failed")]
-    QueryFailed(#[from] tokio_postgres::Error),
-}
-
-impl ResponseError for ActixexpError {
-    fn error_response(&self) -> HttpResponse {
-        match *self {
-            ActixexpError::NotFound => HttpResponse::NotFound().finish(),
-            _ => HttpResponse::InternalServerError().finish(),
-        }
-    }
-}
+use self::app::errors::ActixexpError;
 
 fn create_pool_config() -> Config {
     let mut config = Config::new();
