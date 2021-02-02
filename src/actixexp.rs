@@ -1,19 +1,13 @@
 use actix_web::{delete, get, post, web, App, HttpResponse, HttpServer, Responder, ResponseError};
 use anyhow::Result;
 use deadpool_postgres::{Config, Client, ManagerConfig, Pool, RecyclingMethod};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize};
 use thiserror::Error;
 use tokio_pg_mapper::FromTokioPostgresRow;
-use tokio_pg_mapper_derive::PostgresMapper;
 use tokio_postgres::NoTls;
 
-#[derive(Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "servants")]
-struct Servant {
-    id: i32,
-    name: String,
-    class: String,
-}
+mod app;
+use self::app::models::Servant;
 
 #[derive(Error, Debug)]
 enum ActixexpError {
