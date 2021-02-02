@@ -3,8 +3,8 @@ use serde::Deserialize;
 use tokio_pg_mapper::FromTokioPostgresRow;
 
 use crate::app::Result;
-use super::errors::ActixexpError;
-use super::models::Servant;
+use crate::app::errors::ActixexpError;
+use crate::app::models::Servant;
 
 #[derive(Deserialize)]
 pub struct CreateServantRequest {
