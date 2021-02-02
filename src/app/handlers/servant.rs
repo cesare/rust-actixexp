@@ -2,8 +2,8 @@ use actix_web::{delete, get, post, web, HttpResponse};
 use anyhow::Result;
 use deadpool_postgres::{Pool};
 
-use super::super::db::{CreateServantRequest, ServantRepository};
-use super::super::errors::ActixexpError;
+use crate::app::db::{CreateServantRequest, ServantRepository};
+use crate::app::errors::ActixexpError;
 
 #[post("/servants")]
 pub async fn create(db_pool: web::Data<Pool>, form: web::Form<CreateServantRequest>) -> Result<HttpResponse, ActixexpError> {
