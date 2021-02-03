@@ -1,4 +1,4 @@
-use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use actix_web::{App, HttpServer};
 use deadpool_postgres::{Config, ManagerConfig, RecyclingMethod};
 use tokio_postgres::NoTls;
 
@@ -18,11 +18,6 @@ fn create_pool_config() -> Config {
     config
 }
 
-#[get("/")]
-async fn index() -> impl Responder {
-    HttpResponse::Ok().body("Hello")
-}
-
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     let pool_config = create_pool_config();
@@ -31,7 +26,7 @@ async fn main() -> std::io::Result<()> {
     let server = HttpServer::new(move || {
         App::new()
             .data(pool.clone())
-            .service(index)
+            .service(handlers::root::index)
             .service(handlers::servant::create)
             .service(handlers::servant::list)
             .service(handlers::servant::show)
