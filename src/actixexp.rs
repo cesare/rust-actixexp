@@ -18,5 +18,5 @@ async fn main() -> std::io::Result<()> {
             .service(handlers::servant::show)
             .service(handlers::servant::destroy)
     });
-    server.bind("127.0.0.1:8000")?.run().await
+    server.bind(config.bind_address())?.run().await
 }
