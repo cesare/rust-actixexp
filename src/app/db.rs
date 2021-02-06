@@ -23,7 +23,7 @@ impl ServantRepository {
         }
     }
 
-    pub async fn create(self, request: CreateServantRequest) -> Result<Servant> {
+    pub async fn create(&self, request: CreateServantRequest) -> Result<Servant> {
         let rows = self.client.query("insert into servants (name, class) values ($1, $2) returning id, name, class", &[&request.name, &request.class]).await?;
         rows.iter()
             .take(1)
@@ -33,7 +33,7 @@ impl ServantRepository {
             .ok_or(ActixexpError::NotFound)
     }
 
-    pub async fn list(self) -> Result<Vec<Servant>> {
+    pub async fn list(&self) -> Result<Vec<Servant>> {
         let rows = self.client.query("select id, name, class from servants", &[]).await?;
         let results = rows.iter()
             .map(|row| Servant::from_row_ref(row).unwrap())
@@ -41,7 +41,7 @@ impl ServantRepository {
         Ok(results)
     }
 
-    pub async fn show(self, id: i32) -> Result<Servant> {
+    pub async fn show(&self, id: i32) -> Result<Servant> {
         let rows = self.client.query("select id, name, class from servants where id = $1", &[&id]).await?;
         rows.iter()
             .take(1)
@@ -51,7 +51,7 @@ impl ServantRepository {
             .ok_or(ActixexpError::NotFound)
     }
 
-    pub async fn delete(self, id: i32) -> Result<Servant> {
+    pub async fn delete(&self, id: i32) -> Result<Servant> {
         let rows = self.client.query("delete from servants where id = $1 returning id, name, class", &[&id]).await?;
         rows.iter()
             .take(1)
