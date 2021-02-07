@@ -37,7 +37,7 @@ struct AppConfig {
 
 pub fn create_pool_config() -> DeadpoolConfig {
     let mut config = DeadpoolConfig::new();
-    config.host     = Some("localhost".to_string());
+    config.host     = std::env::var("POSTGRES_HOST").ok().or(Some("localhost".to_string()));
     config.dbname   = Some("actixexp".to_string());
     config.user     = std::env::var("POSTGRES_USER").ok();
     config.password = std::env::var("POSTGRES_PASSWORD").ok();
