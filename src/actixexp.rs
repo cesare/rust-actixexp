@@ -17,7 +17,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .wrap(Logger::new("%a %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
-            .data(pool.clone())
+            .app_data(pool.clone())
             .service(handlers::root::index)
             .service(handlers::servant::create)
             .service(handlers::servant::list)

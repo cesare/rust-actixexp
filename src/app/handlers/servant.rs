@@ -23,7 +23,8 @@ pub async fn list(db_pool: DbPool) -> Result<HttpResponse> {
 }
 
 #[get("/servants/{id}")]
-pub async fn show(db_pool: DbPool, web::Path(id): web::Path<i32>) -> Result<HttpResponse> {
+pub async fn show(db_pool: DbPool, path: web::Path<i32>) -> Result<HttpResponse> {
+    let id = path.into_inner();
     let repository = create_repository(db_pool).await?;
     let result = repository.show(id).await?;
     let response = HttpResponse::Ok().json(result);
@@ -31,7 +32,8 @@ pub async fn show(db_pool: DbPool, web::Path(id): web::Path<i32>) -> Result<Http
 }
 
 #[delete("/servants/{id}")]
-pub async fn destroy(db_pool: DbPool, web::Path(id): web::Path<i32>) -> Result<HttpResponse> {
+pub async fn destroy(db_pool: DbPool, path: web::Path<i32>) -> Result<HttpResponse> {
+    let id = path.into_inner();
     let repository = create_repository(db_pool).await?;
     let result = repository.delete(id).await?;
     let response = HttpResponse::Ok().json(result);
