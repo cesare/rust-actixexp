@@ -1,5 +1,6 @@
 use actix_web::{App, HttpServer};
 use actix_web::middleware::Logger;
+use actix_web::web::Data;
 use env_logger::Env;
 
 mod app;
@@ -17,7 +18,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .wrap(Logger::new("%a %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
-            .app_data(pool.clone())
+            .app_data(Data::new(pool.clone()))
             .service(handlers::root::index)
             .service(handlers::servant::create)
             .service(handlers::servant::list)
