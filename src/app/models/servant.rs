@@ -6,5 +6,5 @@ use tokio_pg_mapper_derive::PostgresMapper;
 pub struct Servant {
   id: i32,
   name: String,
-  class: String,
+  class_name: String,
 }
