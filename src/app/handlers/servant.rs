@@ -1,5 +1,6 @@
 use actix_web::{delete, get, post, web, HttpResponse};
 use deadpool_postgres::{Pool};
+use serde_json::json;
 
 use crate::app::Result;
 use crate::app::db::{CreateServantRequest, ServantRepository};
@@ -18,7 +19,10 @@ pub async fn create(db_pool: DbPool, form: web::Form<CreateServantRequest>) -> R
 pub async fn list(db_pool: DbPool) -> Result<HttpResponse> {
     let repository = create_repository(db_pool).await?;
     let results = repository.list().await?;
-    let response = HttpResponse::Ok().json(results);
+    let response_json = json!({
+        "servants": results,
+    });
+    let response = HttpResponse::Ok().json(response_json);
     Ok(response)
 }
 
