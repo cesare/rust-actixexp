@@ -213,6 +213,7 @@ dependencies = [
  "deadpool-postgres",
  "env_logger",
  "serde",
+ "serde_json",
  "structopt",
  "thiserror",
  "tokio",
