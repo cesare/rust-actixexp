@@ -1,4 +1,4 @@
-use actix_web::{delete, get, post, web, HttpResponse};
+use actix_web::{delete, get, options, post, web, HttpResponse};
 use deadpool_postgres::{Pool};
 use serde_json::json;
 
@@ -6,6 +6,17 @@ use crate::app::Result;
 use crate::app::db::{CreateServantRequest, ServantRepository};
 
 type DbPool = web::Data<Pool>;
+
+#[options("/servants")]
+pub async fn options(_db_pool: DbPool) -> Result<HttpResponse> {
+    let response = HttpResponse::NoContent()
+        .append_header(("Access-Control-Allow-Origin", "http://localhost:3000"))
+        .append_header(("Access-Control-Allow-Methods", "POST, GET, OPTIONS"))
+        .append_header(("Access-Control-Allow-Headers", "Content-Type"))
+        .append_header(("Access-Control-Allow-Credentials", "true"))
+        .finish();
+    Ok(response)
+}
 
 #[post("/servants")]
 pub async fn create(db_pool: DbPool, form: web::Form<CreateServantRequest>) -> Result<HttpResponse> {
