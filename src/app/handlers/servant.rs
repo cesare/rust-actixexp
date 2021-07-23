@@ -19,7 +19,7 @@ pub async fn options(_db_pool: DbPool) -> Result<HttpResponse> {
 }
 
 #[post("/servants")]
-pub async fn create(db_pool: DbPool, form: web::Form<CreateServantRequest>) -> Result<HttpResponse> {
+pub async fn create(db_pool: DbPool, form: web::Json<CreateServantRequest>) -> Result<HttpResponse> {
     let repository = create_repository(db_pool).await?;
     let result = repository.create(form.into_inner()).await?;
     let response = HttpResponse::Created().json(result);
