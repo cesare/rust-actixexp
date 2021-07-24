@@ -22,7 +22,12 @@ pub async fn options(_db_pool: DbPool) -> Result<HttpResponse> {
 pub async fn create(db_pool: DbPool, form: web::Json<CreateServantRequest>) -> Result<HttpResponse> {
     let repository = create_repository(db_pool).await?;
     let result = repository.create(form.into_inner()).await?;
-    let response = HttpResponse::Created().json(result);
+    let response = HttpResponse::Created()
+        .append_header(("Access-Control-Allow-Origin", "http://localhost:3000"))
+        .append_header(("Access-Control-Allow-Methods", "POST, GET, OPTIONS"))
+        .append_header(("Access-Control-Allow-Headers", "Content-Type"))
+        .append_header(("Access-Control-Allow-Credentials", "true"))
+        .json(result);
     Ok(response)
 }
 
