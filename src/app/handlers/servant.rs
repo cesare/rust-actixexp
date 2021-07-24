@@ -1,6 +1,8 @@
 use actix_http::Method;
+use actix_web::dev::{ServiceRequest, ServiceResponse};
+use actix_web::middleware::DefaultHeaders;
 use actix_web::web::{delete, get, post};
-use actix_web::{HttpResponse, Route, Scope, options, web};
+use actix_web::{HttpResponse, Route, Scope, web};
 use deadpool_postgres::{Pool};
 use serde_json::json;
 
@@ -9,9 +11,15 @@ use crate::app::db::{CreateServantRequest, ServantRepository};
 
 type DbPool = web::Data<Pool>;
 
-pub fn create_scope() -> Scope {
+pub fn create_scope() -> Scope<impl actix_service::ServiceFactory<ServiceRequest, InitError = (), Error = actix_web::Error, Response = ServiceResponse, Config = ()>> {
     let options_route = Route::new().method(Method::OPTIONS).to(options);
+    let cors_headers = DefaultHeaders::new()
+        .header("Access-Control-Allow-Origin", "http://localhost:3000")
+        .header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+        .header("Access-Control-Allow-Headers", "Content-Type")
+        .header("Access-Control-Allow-Credentials", "true");
     web::scope("/servants")
+        .wrap(cors_headers)
         .route("", get().to(list))
         .route("", post().to(create))
         .route("/{id}", get().to(show))
@@ -20,24 +28,14 @@ pub fn create_scope() -> Scope {
 }
 
 async fn options(_db_pool: DbPool) -> Result<HttpResponse> {
-    let response = HttpResponse::NoContent()
-        .append_header(("Access-Control-Allow-Origin", "http://localhost:3000"))
-        .append_header(("Access-Control-Allow-Methods", "POST, GET, OPTIONS"))
-        .append_header(("Access-Control-Allow-Headers", "Content-Type"))
-        .append_header(("Access-Control-Allow-Credentials", "true"))
-        .finish();
+    let response = HttpResponse::NoContent().finish();
     Ok(response)
 }
 
 async fn create(db_pool: DbPool, form: web::Json<CreateServantRequest>) -> Result<HttpResponse> {
     let repository = create_repository(db_pool).await?;
     let result = repository.create(form.into_inner()).await?;
-    let response = HttpResponse::Created()
-        .append_header(("Access-Control-Allow-Origin", "http://localhost:3000"))
-        .append_header(("Access-Control-Allow-Methods", "POST, GET, OPTIONS"))
-        .append_header(("Access-Control-Allow-Headers", "Content-Type"))
-        .append_header(("Access-Control-Allow-Credentials", "true"))
-        .json(result);
+    let response = HttpResponse::Created().json(result);
     Ok(response)
 }
 
