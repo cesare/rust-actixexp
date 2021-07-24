@@ -1,4 +1,6 @@
-use actix_web::{delete, get, options, post, web, HttpResponse};
+use actix_http::Method;
+use actix_web::web::{delete, get, post};
+use actix_web::{HttpResponse, Route, Scope, options, web};
 use deadpool_postgres::{Pool};
 use serde_json::json;
 
@@ -7,8 +9,17 @@ use crate::app::db::{CreateServantRequest, ServantRepository};
 
 type DbPool = web::Data<Pool>;
 
-#[options("/servants")]
-pub async fn options(_db_pool: DbPool) -> Result<HttpResponse> {
+pub fn create_scope() -> Scope {
+    let options_route = Route::new().method(Method::OPTIONS).to(options);
+    web::scope("/servants")
+        .route("", get().to(list))
+        .route("", post().to(create))
+        .route("/{id}", get().to(show))
+        .route("/{id}", delete().to(destroy))
+        .route("", options_route)
+}
+
+async fn options(_db_pool: DbPool) -> Result<HttpResponse> {
     let response = HttpResponse::NoContent()
         .append_header(("Access-Control-Allow-Origin", "http://localhost:3000"))
         .append_header(("Access-Control-Allow-Methods", "POST, GET, OPTIONS"))
@@ -18,8 +29,7 @@ pub async fn options(_db_pool: DbPool) -> Result<HttpResponse> {
     Ok(response)
 }
 
-#[post("/servants")]
-pub async fn create(db_pool: DbPool, form: web::Json<CreateServantRequest>) -> Result<HttpResponse> {
+async fn create(db_pool: DbPool, form: web::Json<CreateServantRequest>) -> Result<HttpResponse> {
     let repository = create_repository(db_pool).await?;
     let result = repository.create(form.into_inner()).await?;
     let response = HttpResponse::Created()
@@ -31,8 +41,7 @@ pub async fn create(db_pool: DbPool, form: web::Json<CreateServantRequest>) -> R
     Ok(response)
 }
 
-#[get["/servants"]]
-pub async fn list(db_pool: DbPool) -> Result<HttpResponse> {
+async fn list(db_pool: DbPool) -> Result<HttpResponse> {
     let repository = create_repository(db_pool).await?;
     let results = repository.list().await?;
     let response_json = json!({
@@ -42,8 +51,7 @@ pub async fn list(db_pool: DbPool) -> Result<HttpResponse> {
     Ok(response)
 }
 
-#[get("/servants/{id}")]
-pub async fn show(db_pool: DbPool, path: web::Path<i32>) -> Result<HttpResponse> {
+async fn show(db_pool: DbPool, path: web::Path<i32>) -> Result<HttpResponse> {
     let id = path.into_inner();
     let repository = create_repository(db_pool).await?;
     let result = repository.show(id).await?;
@@ -51,8 +59,7 @@ pub async fn show(db_pool: DbPool, path: web::Path<i32>) -> Result<HttpResponse>
     Ok(response)
 }
 
-#[delete("/servants/{id}")]
-pub async fn destroy(db_pool: DbPool, path: web::Path<i32>) -> Result<HttpResponse> {
+async fn destroy(db_pool: DbPool, path: web::Path<i32>) -> Result<HttpResponse> {
     let id = path.into_inner();
     let repository = create_repository(db_pool).await?;
     let result = repository.delete(id).await?;
