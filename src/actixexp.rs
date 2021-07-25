@@ -12,6 +12,9 @@ async fn main() -> std::io::Result<()> {
     let config = ActixexpConfig::new();
     let pool = config.create_pool();
 
+    let bind_address = config.bind_address();
+    let app_config = config.app_config;
+
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
     let server = HttpServer::new(move || {
@@ -20,7 +23,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::new("%a %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
             .app_data(Data::new(pool.clone()))
             .service(handlers::root::index)
-            .service(handlers::servant::create_scope())
+            .service(handlers::servant::create_scope(&app_config))
     });
-    server.bind(config.bind_address())?.run().await
+    server.bind(bind_address)?.run().await
 }

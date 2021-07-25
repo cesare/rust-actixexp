@@ -7,14 +7,15 @@ use deadpool_postgres::{Pool};
 use serde_json::json;
 
 use crate::app::Result;
+use crate::app::config::AppConfig;
 use crate::app::db::{CreateServantRequest, ServantRepository};
 
 type DbPool = web::Data<Pool>;
 
-pub fn create_scope() -> Scope<impl actix_service::ServiceFactory<ServiceRequest, InitError = (), Error = actix_web::Error, Response = ServiceResponse, Config = ()>> {
+pub fn create_scope(app_config: &AppConfig) -> Scope<impl actix_service::ServiceFactory<ServiceRequest, InitError = (), Error = actix_web::Error, Response = ServiceResponse, Config = ()>> {
     let options_route = Route::new().method(Method::OPTIONS).to(options);
     let cors_headers = DefaultHeaders::new()
-        .header("Access-Control-Allow-Origin", "http://localhost:3000")
+        .header("Access-Control-Allow-Origin", &app_config.frontend_base_uri)
         .header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
         .header("Access-Control-Allow-Headers", "Content-Type")
         .header("Access-Control-Allow-Credentials", "true");
