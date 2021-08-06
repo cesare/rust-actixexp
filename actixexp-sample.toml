@@ -1,0 +1,13 @@
+[server]
+bind = "127.0.0.1"
+port = 8080
+
+[database]
+host = "localhost"
+port = 5432
+database = "actixexp"
+user = "actixexp"
+password = "***********"
+
+[frontend]
+base_uri = "http://localhost:3000"
