@@ -1,9 +1,62 @@
+use anyhow::Result;
 use deadpool_postgres::Config as DeadpoolConfig;
 use deadpool_postgres::{ManagerConfig, Pool, RecyclingMethod};
 use structopt::StructOpt;
+use serde::Deserialize;
+use tokio::fs::File;
+use tokio::io::AsyncReadExt;
 use tokio_postgres::NoTls;
 
 use std::env;
+use std::path::PathBuf;
+
+#[derive(StructOpt)]
+#[structopt(name = "actixexp")]
+pub struct AppArgs {
+    #[structopt(short, long, parse(from_os_str))]
+    config_file: PathBuf,
+}
+
+impl AppArgs {
+    pub fn new() -> Self {
+        Self::from_args()
+    }
+
+    pub async fn load_config(&self) -> Result<ApplicationConfig> {
+        let mut file = File::open(&self.config_file).await?;
+        let mut content = String::new();
+        file.read_to_string(&mut content).await?;
+        let config: ApplicationConfig = toml::from_str(&content)?;
+        Ok(config)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct ServerConfig {
+    bind: String,
+    port: u32,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct DatabaseConfig {
+    host: String,
+    port: u32,
+    database: String,
+    user: String,
+    password: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct FrontendConfig {
+    base_uri: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct ApplicationConfig {
+    pub server: ServerConfig,
+    pub database: DatabaseConfig,
+    pub frontend: FrontendConfig,
+}
 
 #[derive(Clone)]
 pub struct ActixexpConfig {
