@@ -10,6 +10,14 @@ use tokio_postgres::NoTls;
 use std::env;
 use std::path::PathBuf;
 
+mod database;
+mod frontend;
+mod server;
+
+use self::database::DatabaseConfig;
+use self::frontend::FrontendConfig;
+use self::server::ServerConfig;
+
 #[derive(StructOpt)]
 #[structopt(name = "actixexp")]
 pub struct AppArgs {
@@ -29,26 +37,6 @@ impl AppArgs {
         let config: ApplicationConfig = toml::from_str(&content)?;
         Ok(config)
     }
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct ServerConfig {
-    bind: String,
-    port: u32,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct DatabaseConfig {
-    host: String,
-    port: u32,
-    database: String,
-    user: String,
-    password: String,
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct FrontendConfig {
-    base_uri: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
