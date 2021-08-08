@@ -2,6 +2,9 @@
 bind = "127.0.0.1"
 port = 8080
 
+[app]
+session_key = "1X3wtCdb9qkpWg3aX0BCaN1JFho8W/77g1SF76S1SEI="
+
 [database]
 host = "localhost"
 port = 5432

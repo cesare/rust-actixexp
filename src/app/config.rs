@@ -6,10 +6,12 @@ use tokio::io::AsyncReadExt;
 
 use std::path::PathBuf;
 
+mod app;
 mod database;
 mod frontend;
 mod server;
 
+use self::app::AppConfig;
 use self::database::DatabaseConfig;
 use self::frontend::FrontendConfig;
 use self::server::ServerConfig;
@@ -38,6 +40,7 @@ impl AppArgs {
 #[derive(Clone, Debug, Deserialize)]
 pub struct ApplicationConfig {
     pub server: ServerConfig,
+    pub app: AppConfig,
     pub database: DatabaseConfig,
     pub frontend: FrontendConfig,
 }
