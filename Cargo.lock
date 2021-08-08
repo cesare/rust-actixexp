@@ -227,6 +227,7 @@ dependencies = [
  "actix-session",
  "actix-web",
  "anyhow",
+ "base64",
  "deadpool-postgres",
  "env_logger",
  "serde",
