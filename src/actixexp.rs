@@ -12,7 +12,7 @@ async fn main() -> anyhow::Result<()> {
     let args = AppArgs::new();
     let config = args.load_config().await?;
     let bind_address = config.server.bind_address();
-    let pool = config.database.create_pool();
+    let pool = config.database.create_pool()?;
 
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 

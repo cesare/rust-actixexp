@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use deadpool_postgres::Config as DeadpoolConfig;
 use deadpool_postgres::{ManagerConfig, Pool, RecyclingMethod};
 use serde::Deserialize;
@@ -28,8 +29,9 @@ impl From<&DatabaseConfig> for DeadpoolConfig {
 }
 
 impl DatabaseConfig {
-    pub fn create_pool(&self) -> Pool {
+    pub fn create_pool(&self) -> Result<Pool> {
         let pool_config: DeadpoolConfig = self.into();
-        pool_config.create_pool(NoTls).unwrap()
+        pool_config.create_pool(NoTls)
+            .with_context(|| "Failed to create database pool")
     }
 }
