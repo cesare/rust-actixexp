@@ -7,11 +7,13 @@ use tokio::io::AsyncReadExt;
 use std::path::PathBuf;
 
 mod app;
+mod auth;
 mod database;
 mod frontend;
 mod server;
 
 use self::app::AppConfig;
+use self::auth::AuthConfig;
 use self::database::DatabaseConfig;
 use self::frontend::FrontendConfig;
 use self::server::ServerConfig;
@@ -41,6 +43,7 @@ impl AppArgs {
 pub struct ApplicationConfig {
     pub server: ServerConfig,
     pub app: AppConfig,
+    pub auth: AuthConfig,
     pub database: DatabaseConfig,
     pub frontend: FrontendConfig,
 }
