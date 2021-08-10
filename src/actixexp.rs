@@ -28,6 +28,7 @@ async fn main() -> anyhow::Result<()> {
             .app_data(Data::new(pool.clone()))
             .service(handlers::root::index)
             .service(handlers::servant::create_scope(&config))
+            .service(handlers::auth::create_scope(&config))
     });
     server.bind(bind_address)?.run().await?;
 
