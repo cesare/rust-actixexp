@@ -5,6 +5,7 @@ use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::web::{Data, get, scope};
 use serde_json::json;
 
+use crate::app::models::auth::AuthorizationRequest;
 use crate::app::config::ApplicationConfig;
 use crate::app::Result;
 
@@ -14,8 +15,15 @@ pub fn create_scope(config: &ApplicationConfig) -> Scope<impl ServiceFactory<Ser
         .route("", get().to(start))
 }
 
-async fn start(_config: Data<ApplicationConfig>, _session: Session) -> Result<HttpResponse> {
-    let response_json = json!({"result": "ok"});
+async fn start(config: Data<ApplicationConfig>, session: Session) -> Result<HttpResponse> {
+    let auth_request = AuthorizationRequest::new();
+    session.insert("auth-state", &auth_request.state).unwrap(); // TODO: handle errors
+
+    let response_json = json!({
+        "client_id": &config.auth.client_id,
+        "scope": "read:user",
+        "state": &auth_request.state,
+    });
     let response = HttpResponse::Ok().json(response_json);
     Ok(response)
 }

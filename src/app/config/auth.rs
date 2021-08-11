@@ -2,6 +2,6 @@ use serde::Deserialize;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct AuthConfig {
-    client_id: String,
-    client_secret: String,
+    pub client_id: String,
+    pub client_secret: String,
 }
