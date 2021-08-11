@@ -1,4 +1,5 @@
 use actix_service::ServiceFactory;
+use actix_session::Session;
 use actix_web::{Error, HttpResponse, Scope};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::web::{Data, get, scope};
@@ -13,7 +14,7 @@ pub fn create_scope(config: &ApplicationConfig) -> Scope<impl ServiceFactory<Ser
         .route("", get().to(start))
 }
 
-async fn start(_config: Data<ApplicationConfig>) -> Result<HttpResponse> {
+async fn start(_config: Data<ApplicationConfig>, _session: Session) -> Result<HttpResponse> {
     let response_json = json!({"result": "ok"});
     let response = HttpResponse::Ok().json(response_json);
     Ok(response)
