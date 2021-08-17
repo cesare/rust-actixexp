@@ -44,6 +44,12 @@ pub enum AuthenticationError {
 
     #[error("Callback state does not match saved one")]
     StateNotMatch,
+
+    #[error("Token request failed")]
+    TokenRequestFailed,
+
+    #[error("Parsing token response failed")]
+    InvalidTokenResponse,
 }
 
 pub struct Authentication {
@@ -67,6 +73,52 @@ impl Authentication {
             return Err(AuthenticationError::StateNotMatch)
         }
 
+        let token_response = TokenRequest::new(self.config, self.params.code, self.params.state)
+            .execute()
+            .await?;
         todo!()
     }
+}
+
+struct TokenRequest {
+    config: Arc<ApplicationConfig>,
+    code: String,
+    state: String,
+}
+
+impl TokenRequest {
+    fn new(config: Arc<ApplicationConfig>, code: String, state: String) -> Self {
+        Self {
+            config: config,
+            code: code,
+            state: state,
+        }
+    }
+
+    async fn execute(&self) -> Result<TokenResponse, AuthenticationError> {
+        let client = reqwest::Client::new();
+        let parameters = [
+            ("client_id", &self.config.auth.client_id),
+            ("client_secret", &self.config.auth.client_secret),
+            ("code", &self.code),
+            // ("redirect_uri", &config.redirect_uri),
+            ("state", &self.state),
+        ];
+        let result = client.post("https://github.com/login/oauth/access_token")
+            .header("Accept", "application/json")
+            .form(&parameters)
+            .send()
+            .await
+            .or(Err(AuthenticationError::TokenRequestFailed))?
+            .json::<TokenResponse>()
+            .await
+            .or(Err(AuthenticationError::InvalidTokenResponse))?;
+
+        Ok(result)
+    }
+}
+
+#[derive(Deserialize)]
+struct TokenResponse {
+    access_token: String,
 }
