@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use rand::{RngCore, SeedableRng};
 use rand::rngs::StdRng;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::app::config::ApplicationConfig;
@@ -33,8 +33,11 @@ pub struct CallbackParams {
     pub code: String,
 }
 
+#[derive(Serialize)]
 pub struct AuthenticationResult {
-    identifier: String,
+    pub identifier: String,
+    pub username: String,
+    pub name: String,
 }
 
 #[derive(Debug, Error)]
@@ -50,6 +53,12 @@ pub enum AuthenticationError {
 
     #[error("Parsing token response failed")]
     InvalidTokenResponse,
+
+    #[error("User request failed")]
+    UserRequestFailed,
+
+    #[error("Parsing user response failed")]
+    InvalidUserResponse,
 }
 
 pub struct Authentication {
@@ -76,7 +85,14 @@ impl Authentication {
         let token_response = TokenRequest::new(self.config, self.params.code, self.params.state)
             .execute()
             .await?;
-        todo!()
+
+        let user_respoonse = UserRequest::new(token_response.access_token).execute().await?;
+        let result = AuthenticationResult {
+            identifier: user_respoonse.id,
+            username: user_respoonse.login,
+            name: user_respoonse.name,
+        };
+        Ok(result)
     }
 }
 
@@ -120,4 +136,39 @@ impl TokenRequest {
 #[derive(Deserialize)]
 struct TokenResponse {
     access_token: String,
+}
+
+struct UserRequest {
+    access_token: String,
+}
+
+impl UserRequest {
+    fn new(access_token: String) -> Self {
+        Self {
+            access_token: access_token,
+        }
+    }
+
+    async fn execute(&self) -> Result<UserResponse, AuthenticationError> {
+        let client = reqwest::Client::new();
+        let response = client.get("https://api.github.com/user")
+            .header("Accept", "application/vnd.github.v3+json")
+            .header("Authorization", format!("token {}", self.access_token))
+            .header("User-Agent", "Webauthexp")
+            .send()
+            .await
+            .or(Err(AuthenticationError::UserRequestFailed))?;
+
+        let result = response.json::<UserResponse>()
+            .await
+            .or(Err(AuthenticationError::InvalidUserResponse))?;
+        Ok(result)
+    }
+}
+
+#[derive(Deserialize)]
+struct UserResponse {
+    id: String,
+    login: String,
+    name: String,
 }

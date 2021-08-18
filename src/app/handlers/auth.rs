@@ -49,5 +49,7 @@ async fn callback(config: Config, session: Session, params: Params) -> Result {
 
     let auth = Authentication::new(config.into_inner(), params.into_inner(), saved_state);
     let auth_result = auth.execute().await?;
-    todo!()
+
+    let response = HttpResponse::Ok().json(auth_result);
+    Ok(response)
 }
