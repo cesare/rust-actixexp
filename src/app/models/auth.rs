@@ -101,7 +101,6 @@ impl TokenRequest {
             ("client_id", &self.config.auth.client_id),
             ("client_secret", &self.config.auth.client_secret),
             ("code", &self.code),
-            // ("redirect_uri", &config.redirect_uri),
             ("state", &self.state),
         ];
         let result = client.post("https://github.com/login/oauth/access_token")
