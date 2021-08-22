@@ -52,6 +52,12 @@ type Result = std::result::Result<HttpResponse, AuthenticationError>;
 impl ResponseError for AuthenticationError {
     fn error_response(&self) -> HttpResponse {
         match *self {
+            AuthenticationError::StateMissing => {
+                HttpResponse::BadRequest().json(json!({
+                    "status": "Bad Request",
+                    "reason": "State Missing",
+                }))
+            }
             _ => HttpResponse::InternalServerError().finish(),
         }
     }
