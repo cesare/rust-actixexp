@@ -10,7 +10,27 @@ use serde_json::json;
 use crate::app::models::auth::{Authentication, AuthenticationError, AuthorizationRequest, CallbackParams};
 use crate::app::config::ApplicationConfig;
 
+type Result = std::result::Result<HttpResponse, AuthenticationError>;
 type Config = Data<ApplicationConfig>;
+
+impl ResponseError for AuthenticationError {
+    fn error_response(&self) -> HttpResponse {
+        match *self {
+            AuthenticationError::StateMissing | AuthenticationError::StateNotMatch => {
+                HttpResponse::BadRequest().json(json!({
+                    "status": "Bad Request",
+                    "reason": self.to_string(),
+                }))
+            }
+            _ => {
+                HttpResponse::InternalServerError().json(json!({
+                    "status": "internal server error",
+                    "reason": self.to_string(),
+                }))
+            }
+        }
+    }
+}
 
 pub fn create_scope(config: &ApplicationConfig) -> Scope<impl ServiceFactory<ServiceRequest, InitError = (), Error = Error, Response = ServiceResponse, Config = ()>> {
     let cors_headers = DefaultHeaders::new()
@@ -47,26 +67,6 @@ async fn start(config: Config, session: Session) -> Result {
 }
 
 type Params = Form<CallbackParams>;
-type Result = std::result::Result<HttpResponse, AuthenticationError>;
-
-impl ResponseError for AuthenticationError {
-    fn error_response(&self) -> HttpResponse {
-        match *self {
-            AuthenticationError::StateMissing | AuthenticationError::StateNotMatch => {
-                HttpResponse::BadRequest().json(json!({
-                    "status": "Bad Request",
-                    "reason": self.to_string(),
-                }))
-            }
-            _ => {
-                HttpResponse::InternalServerError().json(json!({
-                    "status": "internal server error",
-                    "reason": self.to_string(),
-                }))
-            }
-        }
-    }
-}
 
 async fn callback(config: Config, session: Session, params: Params) -> Result {
     let key = "auth-state";
