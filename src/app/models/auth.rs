@@ -59,6 +59,12 @@ pub enum AuthenticationError {
 
     #[error("Parsing user response failed")]
     InvalidUserResponse,
+
+    #[error("Failed to save state to session")]
+    StateSavingFailed,
+
+    #[error("Failed to load state from session")]
+    StateLoadingFailed,
 }
 
 pub struct Authentication {

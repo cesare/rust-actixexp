@@ -9,7 +9,6 @@ use serde_json::json;
 
 use crate::app::models::auth::{Authentication, AuthenticationError, AuthorizationRequest, CallbackParams};
 use crate::app::config::ApplicationConfig;
-use crate::app::Result as AppResult;
 
 type Config = Data<ApplicationConfig>;
 
@@ -28,14 +27,15 @@ pub fn create_scope(config: &ApplicationConfig) -> Scope<impl ServiceFactory<Ser
         .route("/callback", Route::new().method(Method::OPTIONS).to(options))
 }
 
-async fn options() -> AppResult<HttpResponse> {
+async fn options() -> Result {
     let response = HttpResponse::NoContent().finish();
     Ok(response)
 }
 
-async fn start(config: Config, session: Session) -> AppResult<HttpResponse> {
+async fn start(config: Config, session: Session) -> Result {
     let auth_request = AuthorizationRequest::new();
-    session.insert("auth-state", &auth_request.state).unwrap(); // TODO: handle errors
+    session.insert("auth-state", &auth_request.state)
+        .or(Err(AuthenticationError::StateSavingFailed))?;
 
     let response_json = json!({
         "client_id": &config.auth.client_id,
@@ -70,7 +70,8 @@ impl ResponseError for AuthenticationError {
 
 async fn callback(config: Config, session: Session, params: Params) -> Result {
     let key = "auth-state";
-    let saved_state: Option<String> = session.get(key).unwrap(); // TODO: handle errors
+    let saved_state: Option<String> =
+        session.get(key).or(Err(AuthenticationError::StateLoadingFailed))?;
     let _ = session.remove(key);
 
     let auth = Authentication::new(config.into_inner(), params.into_inner(), saved_state);
