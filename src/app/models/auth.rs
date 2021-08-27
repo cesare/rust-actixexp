@@ -94,7 +94,7 @@ impl Authentication {
 
         let user_respoonse = UserRequest::new(token_response.access_token).execute().await?;
         let result = AuthenticationResult {
-            identifier: user_respoonse.id,
+            identifier: user_respoonse.id.to_string(),
             username: user_respoonse.login,
             name: user_respoonse.name,
         };
@@ -174,7 +174,7 @@ impl UserRequest {
 
 #[derive(Deserialize)]
 struct UserResponse {
-    id: String,
+    id: u64,
     login: String,
     name: String,
 }
