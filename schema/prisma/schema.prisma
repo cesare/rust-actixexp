@@ -9,3 +9,11 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
+
+model Servant {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(100)
+  className String @db.VarChar(64) @map(name: "class_name")
+
+  @@map(name: "servants")
+}
