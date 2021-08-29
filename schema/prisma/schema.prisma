@@ -10,6 +10,15 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Identity {
+  id String @id @db.Uuid @default(uuid())
+  providerIdentifier String @db.VarChar(255) @unique @map(name: "provider_identifier")
+  alive Boolean @default(true)
+  registeredAt DateTime @db.Timestamptz(3) @default(now()) @map(name: "registered_at")
+
+  @@map(name: "identities")
+}
+
 model Servant {
   id Int @id @default(autoincrement())
   name String @db.VarChar(100)
