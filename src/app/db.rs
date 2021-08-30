@@ -8,6 +8,8 @@ use crate::app::Result;
 use crate::app::errors::ActixexpError;
 use crate::app::models::Servant;
 
+pub mod identity_repository;
+
 #[derive(Deserialize)]
 pub struct CreateServantRequest {
     name: String,
