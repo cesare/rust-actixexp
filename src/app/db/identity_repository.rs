@@ -1,10 +1,16 @@
 use deadpool_postgres::Client;
 use thiserror::Error;
+use tokio_pg_mapper::FromTokioPostgresRow;
 
 use crate::app::models::Identity;
 
 #[derive(Debug, Error)]
 pub enum IdentityRepositoryError {
+    #[error("Failed to query database")]
+    QueryFailed(#[from] tokio_postgres::Error),
+
+    #[error("Unknown row returned")]
+    ObjectMappingFailed(#[from] tokio_pg_mapper::Error),
 }
 
 type Result<T> = std::result::Result<T, IdentityRepositoryError>;
@@ -19,11 +25,24 @@ impl IdentityRepository {
     }
 
     pub async fn find_by_provider_identifier(&self, identifier: &str) -> Result<Option<Identity>> {
-        todo!()
+        let statement = "select id, provider_identifier, alive from identities where provider_identifier = $1 limit 1";
+        let result = self.client.query_opt(statement, &[&identifier]).await?;
+        match result {
+            Some(row) => {
+                let identity = Identity::from_row_ref(&row)?;
+                Ok(Some(identity))
+            },
+            None => {
+                Ok(None)
+            }
+        }
     }
 
     pub async fn find_by_id(&self, id: &str) -> Result<Identity> {
-        todo!()
+        let statement = "select id, provider_identifier, alive from identities where id = $1 limit 1";
+        let row = self.client.query_one(statement, &[&id]).await?;
+        let identity = Identity::from_row_ref(&row)?;
+        Ok(identity)
     }
 
     pub async fn create(&self, identifier: &str) -> Result<Identity> {
