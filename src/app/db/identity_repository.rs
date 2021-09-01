@@ -46,6 +46,12 @@ impl IdentityRepository {
     }
 
     pub async fn create(&self, identifier: &str) -> Result<Identity> {
-        todo!()
+        let statement =
+            "insert into identities (id, provider_identifier)
+               values (gen_random_uuid(), $1)
+               returning id, provider_identifier, alive, registered_at";
+        let row = self.client.query_one(statement, &[&identifier]).await?;
+        let identity = Identity::from_row_ref(&row)?;
+        Ok(identity)
     }
 }
