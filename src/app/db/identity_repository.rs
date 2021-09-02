@@ -54,4 +54,12 @@ impl IdentityRepository {
         let identity = Identity::from_row_ref(&row)?;
         Ok(identity)
     }
+
+    pub async fn find_or_create(&self, provider_identifier: &str) -> Result<Identity> {
+        let existing_identity = self.find_by_provider_identifier(provider_identifier).await?;
+        match existing_identity {
+            Some(identity) => Ok(identity),
+            None => self.create(provider_identifier).await,
+        }
+    }
 }
