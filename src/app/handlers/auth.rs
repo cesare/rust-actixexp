@@ -5,6 +5,7 @@ use actix_web::{Error, HttpResponse, ResponseError, Route, Scope};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::middleware::DefaultHeaders;
 use actix_web::web::{Data, Form, post, scope};
+use deadpool_postgres::{Pool};
 use serde_json::json;
 
 use crate::app::models::auth::{Authentication, AuthenticationError, AuthorizationRequest, CallbackParams};
@@ -67,8 +68,9 @@ async fn start(config: Config, session: Session) -> Result {
 }
 
 type Params = Form<CallbackParams>;
+type DbPool = Data<Pool>;
 
-async fn callback(config: Config, session: Session, params: Params) -> Result {
+async fn callback(config: Config, _pool: DbPool, session: Session, params: Params) -> Result {
     let key = "auth-state";
     let saved_state: Option<String> =
         session.get(key).or(Err(AuthenticationError::StateLoadingFailed))?;
