@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::app::config::ApplicationConfig;
+use crate::app::db::identity_repository::IdentityRepository;
 
 pub struct AuthorizationRequest {
     pub state: String,
@@ -66,6 +67,12 @@ pub enum AuthenticationError {
 
     #[error("Failed to load state from session")]
     StateLoadingFailed,
+
+    #[error("Database connection failed")]
+    DatabaseConnectionFailed,
+
+    #[error("Failed to find/register identity")]
+    IdentityRegistrationFailed,
 }
 
 pub struct Authentication {
@@ -95,11 +102,14 @@ impl Authentication {
             .execute()
             .await?;
 
-        let user_respoonse = UserRequest::new(token_response.access_token).execute().await?;
+        let user_response = UserRequest::new(token_response.access_token).execute().await?;
+        let client = self.pool.get().await.or(Err(AuthenticationError::DatabaseConnectionFailed))?;
+        let identity = IdentityRepository::new(client).find_or_create(&user_response.id.to_string()).await.or(Err(AuthenticationError::IdentityRegistrationFailed))?;
+
         let result = AuthenticationResult {
-            identifier: user_respoonse.id.to_string(),
-            username: user_respoonse.login,
-            name: user_respoonse.name,
+            identifier: user_response.id.to_string(),
+            username: user_response.login,
+            name: user_response.name,
         };
         Ok(result)
     }
