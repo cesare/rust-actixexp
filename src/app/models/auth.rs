@@ -1,6 +1,7 @@
 use std::result::Result;
 use std::sync::Arc;
 
+use deadpool_postgres::Pool;
 use rand::{RngCore, SeedableRng};
 use rand::rngs::StdRng;
 use serde::{Deserialize, Serialize};
@@ -69,14 +70,16 @@ pub enum AuthenticationError {
 
 pub struct Authentication {
     config: Arc<ApplicationConfig>,
+    pool: Arc<Pool>,
     params: CallbackParams,
     saved_state: Option<String>,
 }
 
 impl Authentication {
-    pub fn new(config: Arc<ApplicationConfig>, params: CallbackParams, saved_state: Option<String>) -> Self {
+    pub fn new(config: Arc<ApplicationConfig>, pool: Arc<Pool>, params: CallbackParams, saved_state: Option<String>) -> Self {
         Self {
             config: config,
+            pool: pool,
             params: params,
             saved_state: saved_state,
         }

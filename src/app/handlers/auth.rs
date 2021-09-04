@@ -70,13 +70,13 @@ async fn start(config: Config, session: Session) -> Result {
 type Params = Form<CallbackParams>;
 type DbPool = Data<Pool>;
 
-async fn callback(config: Config, _pool: DbPool, session: Session, params: Params) -> Result {
+async fn callback(config: Config, pool: DbPool, session: Session, params: Params) -> Result {
     let key = "auth-state";
     let saved_state: Option<String> =
         session.get(key).or(Err(AuthenticationError::StateLoadingFailed))?;
     let _ = session.remove(key);
 
-    let auth = Authentication::new(config.into_inner(), params.into_inner(), saved_state);
+    let auth = Authentication::new(config.into_inner(), pool.into_inner(), params.into_inner(), saved_state);
     let auth_result = auth.execute().await?;
 
     let response = HttpResponse::Ok().json(auth_result);
