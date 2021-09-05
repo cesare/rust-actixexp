@@ -9,6 +9,7 @@ use thiserror::Error;
 
 use crate::app::config::ApplicationConfig;
 use crate::app::db::identity_repository::IdentityRepository;
+use crate::app::models::Identity;
 
 pub struct AuthorizationRequest {
     pub state: String,
@@ -37,6 +38,7 @@ pub struct CallbackParams {
 
 #[derive(Serialize)]
 pub struct AuthenticationResult {
+    pub identity: Identity,
     pub identifier: String,
     pub username: String,
     pub name: String,
@@ -107,6 +109,7 @@ impl Authentication {
         let identity = IdentityRepository::new(client).find_or_create(&user_response.id.to_string()).await.or(Err(AuthenticationError::IdentityRegistrationFailed))?;
 
         let result = AuthenticationResult {
+            identity: identity,
             identifier: user_response.id.to_string(),
             username: user_response.login,
             name: user_response.name,

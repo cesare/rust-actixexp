@@ -25,7 +25,10 @@ impl IdentityRepository {
     }
 
     pub async fn find_by_provider_identifier(&self, identifier: &str) -> Result<Option<Identity>> {
-        let statement = "select id, provider_identifier, alive from identities where provider_identifier = $1 limit 1";
+        let statement =
+            "select cast(id as varchar) as id, provider_identifier, alive
+                from identities where provider_identifier = $1
+                limit 1";
         let result = self.client.query_opt(statement, &[&identifier]).await?;
         match result {
             Some(row) => {
@@ -39,7 +42,10 @@ impl IdentityRepository {
     }
 
     pub async fn find_by_id(&self, id: &str) -> Result<Identity> {
-        let statement = "select id, provider_identifier, alive from identities where id = $1 limit 1";
+        let statement =
+            "select cast(id as varchar) as id, provider_identifier, alive
+                from identities where id = $1
+                limit 1";
         let row = self.client.query_one(statement, &[&id]).await?;
         let identity = Identity::from_row_ref(&row)?;
         Ok(identity)
