@@ -2,9 +2,13 @@ use std::result::Result;
 use std::sync::Arc;
 
 use deadpool_postgres::Pool;
+use hmac::{Hmac, NewMac};
+use jwt::SignWithKey;
+use jwt::claims::RegisteredClaims;
 use rand::{RngCore, SeedableRng};
 use rand::rngs::StdRng;
 use serde::{Deserialize, Serialize};
+use sha2::Sha384;
 use thiserror::Error;
 
 use crate::app::config::ApplicationConfig;
@@ -42,6 +46,7 @@ pub struct AuthenticationResult {
     pub identifier: String,
     pub username: String,
     pub name: String,
+    pub token: String,
 }
 
 #[derive(Debug, Error)]
@@ -75,6 +80,12 @@ pub enum AuthenticationError {
 
     #[error("Failed to find/register identity")]
     IdentityRegistrationFailed,
+
+    #[error("Failed to create token signing key")]
+    InvalidTokenSigninKey,
+
+    #[error("Failed to sign token")]
+    TokenSigningFailed,
 }
 
 pub struct Authentication {
@@ -100,7 +111,7 @@ impl Authentication {
             return Err(AuthenticationError::StateNotMatch)
         }
 
-        let token_response = TokenRequest::new(self.config, self.params.code, self.params.state)
+        let token_response = TokenRequest::new(&self.config, self.params.code, self.params.state)
             .execute()
             .await?;
 
@@ -108,11 +119,13 @@ impl Authentication {
         let client = self.pool.get().await.or(Err(AuthenticationError::DatabaseConnectionFailed))?;
         let identity = IdentityRepository::new(client).find_or_create(&user_response.id.to_string()).await.or(Err(AuthenticationError::IdentityRegistrationFailed))?;
 
+        let token = TokenGenerator::new(&self.config).generate(&identity.id)?;
         let result = AuthenticationResult {
             identity: identity,
             identifier: user_response.id.to_string(),
             username: user_response.login,
             name: user_response.name,
+            token: token,
         };
         Ok(result)
     }
@@ -125,9 +138,9 @@ struct TokenRequest {
 }
 
 impl TokenRequest {
-    fn new(config: Arc<ApplicationConfig>, code: String, state: String) -> Self {
+    fn new(config: &Arc<ApplicationConfig>, code: String, state: String) -> Self {
         Self {
-            config: config,
+            config: config.clone(),
             code: code,
             state: state,
         }
@@ -193,4 +206,25 @@ struct UserResponse {
     id: u64,
     login: String,
     name: String,
+}
+
+struct TokenGenerator {
+    config: Arc<ApplicationConfig>,
+}
+
+impl TokenGenerator {
+    fn new(config: &Arc<ApplicationConfig>) -> Self {
+        Self { config: config.clone() }
+    }
+
+    fn generate(&self, identifier: &str) -> Result<String, AuthenticationError> {
+        let raw_key = &self.config.auth.token_signing_key;
+        let key: Hmac<Sha384> = Hmac::new_from_slice(raw_key)
+            .or(Err(AuthenticationError::InvalidTokenSigninKey))?;
+
+        let mut claims = RegisteredClaims::default();
+        claims.subject = Some(identifier.to_owned());
+        claims.sign_with_key(&key)
+            .or(Err(AuthenticationError::TokenSigningFailed))
+    }
 }
