@@ -238,7 +238,9 @@ impl TokenGenerator {
 
         let now = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)
             .or(Err(AuthenticationError::SystemTimeFailed))?;
-        claims.expiration = Some(now.as_secs() + 3600);
+        let now_in_seconds = now.as_secs();
+        claims.issued_at = Some(now_in_seconds);
+        claims.expiration = Some(now_in_seconds + 3600);
 
         Ok(claims)
     }
