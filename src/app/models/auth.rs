@@ -1,5 +1,6 @@
 use std::result::Result;
 use std::sync::Arc;
+use std::time::SystemTime;
 
 use deadpool_postgres::Pool;
 use hmac::{Hmac, NewMac};
@@ -86,6 +87,9 @@ pub enum AuthenticationError {
 
     #[error("Failed to sign token")]
     TokenSigningFailed,
+
+    #[error("Failed to get current time")]
+    SystemTimeFailed,
 }
 
 pub struct Authentication {
@@ -222,9 +226,20 @@ impl TokenGenerator {
         let key: Hmac<Sha384> = Hmac::new_from_slice(raw_key)
             .or(Err(AuthenticationError::InvalidTokenSigninKey))?;
 
-        let mut claims = RegisteredClaims::default();
-        claims.subject = Some(identifier.to_owned());
+        let claims = self.build_claims(&identifier)?;
         claims.sign_with_key(&key)
             .or(Err(AuthenticationError::TokenSigningFailed))
+    }
+
+    fn build_claims(&self, identifier: &str) -> Result<RegisteredClaims, AuthenticationError> {
+        let mut claims = RegisteredClaims::default();
+
+        claims.subject = Some(identifier.to_owned());
+
+        let now = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)
+            .or(Err(AuthenticationError::SystemTimeFailed))?;
+        claims.expiration = Some(now.as_secs() + 3600);
+
+        Ok(claims)
     }
 }
