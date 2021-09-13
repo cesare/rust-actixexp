@@ -79,10 +79,21 @@ async fn callback(config: Config, pool: DbPool, session: Session, params: Params
     let auth = Authentication::new(config.into_inner(), pool.into_inner(), params.into_inner(), saved_state);
     let auth_result = auth.execute().await?;
 
+    session.clear();
+    session.renew();
+    set_token_to_session(&session, &auth_result.token)?;
+
     let json = json!({
         "identifier": auth_result.identity.id,
         "name": auth_result.name,
+        "token": auth_result.token,
     });
     let response = HttpResponse::Ok().json(json);
     Ok(response)
+}
+
+fn set_token_to_session(session: &Session, token: &str) -> std::result::Result<(), AuthenticationError> {
+    session.insert("token", token)
+        .or(Err(AuthenticationError::TokenSavingFailed))?;
+    Ok(())
 }

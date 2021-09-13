@@ -73,6 +73,9 @@ pub enum AuthenticationError {
     #[error("Failed to save state to session")]
     StateSavingFailed,
 
+    #[error("Failed to save token to session")]
+    TokenSavingFailed,
+
     #[error("Failed to load state from session")]
     StateLoadingFailed,
 
