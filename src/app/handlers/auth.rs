@@ -4,7 +4,7 @@ use actix_session::Session;
 use actix_web::{Error, HttpResponse, ResponseError, Route, Scope};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::middleware::DefaultHeaders;
-use actix_web::web::{Data, Form, post, scope};
+use actix_web::web::{Data, Form, delete, post, scope};
 use deadpool_postgres::{Pool};
 use serde_json::json;
 
@@ -46,6 +46,7 @@ pub fn create_scope(config: &ApplicationConfig) -> Scope<impl ServiceFactory<Ser
         .route("/callback", post().to(callback))
         .route("", Route::new().method(Method::OPTIONS).to(options))
         .route("/callback", Route::new().method(Method::OPTIONS).to(options))
+        .route("/session", delete().to(signout))
 }
 
 async fn options() -> Result {
@@ -96,4 +97,14 @@ fn set_token_to_session(session: &Session, token: &str) -> std::result::Result<(
     session.insert("token", token)
         .or(Err(AuthenticationError::TokenSavingFailed))?;
     Ok(())
+}
+
+async fn signout(session: Session) -> Result {
+    session.purge();
+
+    let json = json!({
+        "result": "ok",
+    });
+    let response = HttpResponse::Ok().json(json);
+    Ok(response)
 }
