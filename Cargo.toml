@@ -9,6 +9,7 @@ name = "actixexp"
 path = "src/actixexp.rs"
 
 [dependencies]
+actix-cors = "0.6.0-beta.2"
 actix-http = "=3.0.0-beta.10"
 actix-rt = "~2.2.0"
 actix-service = "=2.0.0"
