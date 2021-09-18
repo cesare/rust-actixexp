@@ -1,9 +1,8 @@
 use actix_cors::Cors;
-use actix_http::Method;
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::http::header;
 use actix_web::web::{delete, get, post};
-use actix_web::{HttpResponse, Route, Scope, web};
+use actix_web::{HttpResponse, Scope, web};
 use deadpool_postgres::{Pool};
 use serde_json::json;
 
@@ -22,7 +21,6 @@ fn create_cors(config: &ApplicationConfig) -> Cors {
 }
 
 pub fn create_scope(config: &ApplicationConfig) -> Scope<impl actix_service::ServiceFactory<ServiceRequest, InitError = (), Error = actix_web::Error, Response = ServiceResponse, Config = ()>> {
-    let options_route = Route::new().method(Method::OPTIONS).to(options);
     let cors = create_cors(config);
     web::scope("/servants")
         .wrap(cors)
@@ -30,12 +28,6 @@ pub fn create_scope(config: &ApplicationConfig) -> Scope<impl actix_service::Ser
         .route("", post().to(create))
         .route("/{id}", get().to(show))
         .route("/{id}", delete().to(destroy))
-        .route("", options_route)
-}
-
-async fn options(_db_pool: DbPool) -> Result<HttpResponse> {
-    let response = HttpResponse::NoContent().finish();
-    Ok(response)
 }
 
 async fn create(db_pool: DbPool, form: web::Json<CreateServantRequest>) -> Result<HttpResponse> {

@@ -1,8 +1,7 @@
 use actix_cors::Cors;
-use actix_http::Method;
 use actix_service::ServiceFactory;
 use actix_session::Session;
-use actix_web::{Error, HttpResponse, ResponseError, Route, Scope};
+use actix_web::{Error, HttpResponse, ResponseError, Scope};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::http::header;
 use actix_web::web::{Data, Form, delete, post, scope};
@@ -49,14 +48,7 @@ pub fn create_scope(config: &ApplicationConfig) -> Scope<impl ServiceFactory<Ser
         .wrap(cors)
         .route("", post().to(start))
         .route("/callback", post().to(callback))
-        .route("", Route::new().method(Method::OPTIONS).to(options))
-        .route("/callback", Route::new().method(Method::OPTIONS).to(options))
         .route("/session", delete().to(signout))
-}
-
-async fn options() -> Result {
-    let response = HttpResponse::NoContent().finish();
-    Ok(response)
 }
 
 async fn start(config: Config, session: Session) -> Result {
