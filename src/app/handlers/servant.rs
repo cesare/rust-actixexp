@@ -13,13 +13,17 @@ use crate::app::db::{CreateServantRequest, ServantRepository};
 
 type DbPool = web::Data<Pool>;
 
-pub fn create_scope(config: &ApplicationConfig) -> Scope<impl actix_service::ServiceFactory<ServiceRequest, InitError = (), Error = actix_web::Error, Response = ServiceResponse, Config = ()>> {
-    let options_route = Route::new().method(Method::OPTIONS).to(options);
-    let cors = Cors::default()
+fn create_cors(config: &ApplicationConfig) -> Cors {
+    Cors::default()
         .allowed_origin(&config.frontend.base_uri)
         .allowed_methods(vec!["POST", "GET", "OPTIONS"])
         .allowed_headers(vec![header::CONTENT_TYPE])
-        .supports_credentials();
+        .supports_credentials()
+}
+
+pub fn create_scope(config: &ApplicationConfig) -> Scope<impl actix_service::ServiceFactory<ServiceRequest, InitError = (), Error = actix_web::Error, Response = ServiceResponse, Config = ()>> {
+    let options_route = Route::new().method(Method::OPTIONS).to(options);
+    let cors = create_cors(config);
     web::scope("/servants")
         .wrap(cors)
         .route("", get().to(list))

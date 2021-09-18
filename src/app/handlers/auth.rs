@@ -34,12 +34,16 @@ impl ResponseError for AuthenticationError {
     }
 }
 
-pub fn create_scope(config: &ApplicationConfig) -> Scope<impl ServiceFactory<ServiceRequest, InitError = (), Error = Error, Response = ServiceResponse, Config = ()>> {
-    let cors = Cors::default()
+fn create_cors(config: &ApplicationConfig) -> Cors {
+    Cors::default()
         .allowed_origin(&config.frontend.base_uri)
         .allowed_methods(vec!["POST", "GET", "OPTIONS"])
         .allowed_headers(vec![header::CONTENT_TYPE])
-        .supports_credentials();
+        .supports_credentials()
+}
+
+pub fn create_scope(config: &ApplicationConfig) -> Scope<impl ServiceFactory<ServiceRequest, InitError = (), Error = Error, Response = ServiceResponse, Config = ()>> {
+    let cors = create_cors(config);
     scope("/auth")
         .app_data(Data::new(config.clone()))
         .wrap(cors)
