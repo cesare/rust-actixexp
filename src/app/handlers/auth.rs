@@ -1,9 +1,10 @@
+use actix_cors::Cors;
 use actix_http::Method;
 use actix_service::ServiceFactory;
 use actix_session::Session;
 use actix_web::{Error, HttpResponse, ResponseError, Route, Scope};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
-use actix_web::middleware::DefaultHeaders;
+use actix_web::http::header;
 use actix_web::web::{Data, Form, delete, post, scope};
 use deadpool_postgres::{Pool};
 use serde_json::json;
@@ -34,14 +35,14 @@ impl ResponseError for AuthenticationError {
 }
 
 pub fn create_scope(config: &ApplicationConfig) -> Scope<impl ServiceFactory<ServiceRequest, InitError = (), Error = Error, Response = ServiceResponse, Config = ()>> {
-    let cors_headers = DefaultHeaders::new()
-        .header("Access-Control-Allow-Origin", &config.frontend.base_uri)
-        .header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-        .header("Access-Control-Allow-Headers", "Content-Type")
-        .header("Access-Control-Allow-Credentials", "true");
+    let cors = Cors::default()
+        .allowed_origin(&config.frontend.base_uri)
+        .allowed_methods(vec!["POST", "GET", "OPTIONS"])
+        .allowed_headers(vec![header::CONTENT_TYPE])
+        .supports_credentials();
     scope("/auth")
         .app_data(Data::new(config.clone()))
-        .wrap(cors_headers)
+        .wrap(cors)
         .route("", post().to(start))
         .route("/callback", post().to(callback))
         .route("", Route::new().method(Method::OPTIONS).to(options))

@@ -1,6 +1,7 @@
+use actix_cors::Cors;
 use actix_http::Method;
 use actix_web::dev::{ServiceRequest, ServiceResponse};
-use actix_web::middleware::DefaultHeaders;
+use actix_web::http::header;
 use actix_web::web::{delete, get, post};
 use actix_web::{HttpResponse, Route, Scope, web};
 use deadpool_postgres::{Pool};
@@ -14,13 +15,13 @@ type DbPool = web::Data<Pool>;
 
 pub fn create_scope(config: &ApplicationConfig) -> Scope<impl actix_service::ServiceFactory<ServiceRequest, InitError = (), Error = actix_web::Error, Response = ServiceResponse, Config = ()>> {
     let options_route = Route::new().method(Method::OPTIONS).to(options);
-    let cors_headers = DefaultHeaders::new()
-        .header("Access-Control-Allow-Origin", &config.frontend.base_uri)
-        .header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-        .header("Access-Control-Allow-Headers", "Content-Type")
-        .header("Access-Control-Allow-Credentials", "true");
+    let cors = Cors::default()
+        .allowed_origin(&config.frontend.base_uri)
+        .allowed_methods(vec!["POST", "GET", "OPTIONS"])
+        .allowed_headers(vec![header::CONTENT_TYPE])
+        .supports_credentials();
     web::scope("/servants")
-        .wrap(cors_headers)
+        .wrap(cors)
         .route("", get().to(list))
         .route("", post().to(create))
         .route("/{id}", get().to(show))
