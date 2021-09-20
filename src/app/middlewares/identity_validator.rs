@@ -1,8 +1,8 @@
 use std::error::Error as StdError;
 
-use actix_web::body::MessageBody;
+use actix_web::body::{AnyBody, MessageBody};
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
-use futures_util::future::{LocalBoxFuture, Ready};
+use futures_util::future::{ok, FutureExt as _, LocalBoxFuture, Ready};
 
 pub struct IdentityValidator;
 
@@ -21,7 +21,9 @@ where
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        todo!()
+        ok(IdentityValidatorMiddleware {
+            service: service,
+        })
     }
 }
 
@@ -43,7 +45,12 @@ where
 
     actix_service::forward_ready!(service);
 
-    fn call(&self, mut req: ServiceRequest) -> Self::Future {
-        todo!()
+    fn call(&self, req: ServiceRequest) -> Self::Future {
+        let fut = self.service.call(req);
+        async move {
+            let res = fut.await?;
+            Ok(res.map_body(|_, body| AnyBody::from_message(body)))
+        }
+        .boxed_local()
     }
 }

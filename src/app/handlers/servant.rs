@@ -8,6 +8,7 @@ use serde_json::json;
 
 use crate::app::Result;
 use crate::app::config::ApplicationConfig;
+use crate::app::middlewares::IdentityValidator;
 use crate::app::db::{CreateServantRequest, ServantRepository};
 
 type DbPool = web::Data<Pool>;
@@ -22,8 +23,10 @@ fn create_cors(config: &ApplicationConfig) -> Cors {
 
 pub fn create_scope(config: &ApplicationConfig) -> Scope<impl actix_service::ServiceFactory<ServiceRequest, InitError = (), Error = actix_web::Error, Response = ServiceResponse, Config = ()>> {
     let cors = create_cors(config);
+    let identity_validator = IdentityValidator{};
     web::scope("/servants")
         .wrap(cors)
+        .wrap(identity_validator)
         .route("", get().to(list))
         .route("", post().to(create))
         .route("/{id}", get().to(show))
