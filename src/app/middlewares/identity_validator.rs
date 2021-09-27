@@ -4,7 +4,19 @@ use actix_web::body::{AnyBody, MessageBody};
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
 use futures_util::future::{ok, FutureExt as _, LocalBoxFuture, Ready};
 
-pub struct IdentityValidator;
+use crate::app::config::ApplicationConfig;
+
+pub struct IdentityValidator {
+    token_signing_key: Vec<u8>,
+}
+
+impl IdentityValidator {
+    pub fn new(config: &ApplicationConfig) -> Self {
+        Self {
+            token_signing_key: config.auth.token_signing_key.clone(),
+        }
+    }
+}
 
 impl<S, B> Transform<S, ServiceRequest> for IdentityValidator
 where
@@ -23,12 +35,14 @@ where
     fn new_transform(&self, service: S) -> Self::Future {
         ok(IdentityValidatorMiddleware {
             service: service,
+            token_signing_key: self.token_signing_key.clone(),
         })
     }
 }
 
 pub struct IdentityValidatorMiddleware<S> {
     service: S,
+    token_signing_key: Vec<u8>,
 }
 
 impl<S, B> Service<ServiceRequest> for IdentityValidatorMiddleware<S>

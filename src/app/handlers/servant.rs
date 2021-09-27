@@ -23,7 +23,7 @@ fn create_cors(config: &ApplicationConfig) -> Cors {
 
 pub fn create_scope(config: &ApplicationConfig) -> Scope<impl actix_service::ServiceFactory<ServiceRequest, InitError = (), Error = actix_web::Error, Response = ServiceResponse, Config = ()>> {
     let cors = create_cors(config);
-    let identity_validator = IdentityValidator{};
+    let identity_validator = IdentityValidator::new(config);
     web::scope("/servants")
         .wrap(cors)
         .wrap(identity_validator)
