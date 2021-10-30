@@ -8,6 +8,7 @@ use actix_web::web::{Data, Form, delete, post, scope};
 use deadpool_postgres::{Pool};
 use serde_json::json;
 
+use crate::app::models::Identity;
 use crate::app::models::auth::{Authentication, AuthenticationError, AuthorizationRequest, CallbackParams};
 use crate::app::config::ApplicationConfig;
 
@@ -79,7 +80,7 @@ async fn callback(config: Config, pool: DbPool, session: Session, params: Params
 
     session.clear();
     session.renew();
-    set_token_to_session(&session, &auth_result.token)?;
+    set_identity_to_session(&session, &auth_result.identity)?;
 
     let json = json!({
         "identifier": auth_result.identity.id,
@@ -90,8 +91,8 @@ async fn callback(config: Config, pool: DbPool, session: Session, params: Params
     Ok(response)
 }
 
-fn set_token_to_session(session: &Session, token: &str) -> std::result::Result<(), AuthenticationError> {
-    session.insert("token", token)
+fn set_identity_to_session(session: &Session, identity: &Identity) -> std::result::Result<(), AuthenticationError> {
+    session.insert("id", &identity.id)
         .or(Err(AuthenticationError::TokenSavingFailed))?;
     Ok(())
 }
