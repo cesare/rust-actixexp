@@ -85,7 +85,6 @@ async fn callback(config: Config, pool: DbPool, session: Session, params: Params
     let json = json!({
         "identifier": auth_result.identity.id,
         "name": auth_result.name,
-        "token": auth_result.token,
     });
     let response = HttpResponse::Ok().json(json);
     Ok(response)

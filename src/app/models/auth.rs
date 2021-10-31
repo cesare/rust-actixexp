@@ -1,15 +1,10 @@
 use std::result::Result;
 use std::sync::Arc;
-use std::time::SystemTime;
 
 use deadpool_postgres::Pool;
-use hmac::{Hmac, NewMac};
-use jwt::SignWithKey;
-use jwt::claims::RegisteredClaims;
 use rand::{RngCore, SeedableRng};
 use rand::rngs::StdRng;
 use serde::{Deserialize, Serialize};
-use sha2::Sha384;
 use thiserror::Error;
 
 use crate::app::config::ApplicationConfig;
@@ -47,7 +42,6 @@ pub struct AuthenticationResult {
     pub identifier: String,
     pub username: String,
     pub name: String,
-    pub token: String,
 }
 
 #[derive(Debug, Error)]
@@ -84,15 +78,6 @@ pub enum AuthenticationError {
 
     #[error("Failed to find/register identity")]
     IdentityRegistrationFailed,
-
-    #[error("Failed to create token signing key")]
-    InvalidTokenSigninKey,
-
-    #[error("Failed to sign token")]
-    TokenSigningFailed,
-
-    #[error("Failed to get current time")]
-    SystemTimeFailed,
 }
 
 pub struct Authentication {
@@ -126,13 +111,11 @@ impl Authentication {
         let client = self.pool.get().await.or(Err(AuthenticationError::DatabaseConnectionFailed))?;
         let identity = IdentityRepository::new(client).find_or_create(&user_response.id.to_string()).await.or(Err(AuthenticationError::IdentityRegistrationFailed))?;
 
-        let token = TokenGenerator::new(&self.config).generate(&identity.id)?;
         let result = AuthenticationResult {
             identity: identity,
             identifier: user_response.id.to_string(),
             username: user_response.login,
             name: user_response.name,
-            token: token,
         };
         Ok(result)
     }
@@ -213,38 +196,4 @@ struct UserResponse {
     id: u64,
     login: String,
     name: String,
-}
-
-struct TokenGenerator {
-    config: Arc<ApplicationConfig>,
-}
-
-impl TokenGenerator {
-    fn new(config: &Arc<ApplicationConfig>) -> Self {
-        Self { config: config.clone() }
-    }
-
-    fn generate(&self, identifier: &str) -> Result<String, AuthenticationError> {
-        let raw_key = &self.config.auth.token_signing_key;
-        let key: Hmac<Sha384> = Hmac::new_from_slice(raw_key)
-            .or(Err(AuthenticationError::InvalidTokenSigninKey))?;
-
-        let claims = self.build_claims(&identifier)?;
-        claims.sign_with_key(&key)
-            .or(Err(AuthenticationError::TokenSigningFailed))
-    }
-
-    fn build_claims(&self, identifier: &str) -> Result<RegisteredClaims, AuthenticationError> {
-        let mut claims = RegisteredClaims::default();
-
-        claims.subject = Some(identifier.to_owned());
-
-        let now = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)
-            .or(Err(AuthenticationError::SystemTimeFailed))?;
-        let now_in_seconds = now.as_secs();
-        claims.issued_at = Some(now_in_seconds);
-        claims.expiration = Some(now_in_seconds + 3600);
-
-        Ok(claims)
-    }
 }
