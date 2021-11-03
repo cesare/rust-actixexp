@@ -8,6 +8,7 @@ use crate::app::Result;
 use crate::app::errors::ActixexpError;
 use crate::app::models::Servant;
 
+pub mod connection;
 pub mod identity_repository;
 
 #[derive(Deserialize)]
