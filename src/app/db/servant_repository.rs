@@ -8,6 +8,8 @@ use crate::app::Result;
 use crate::app::errors::ActixexpError;
 use crate::app::models::Servant;
 
+use super::connection::DatabaseConnection;
+
 #[derive(Deserialize)]
 pub struct CreateServantRequest {
     name: String,
@@ -19,6 +21,12 @@ pub struct ServantRepository {
 }
 
 impl ServantRepository {
+    pub async fn initialize(connection: &DatabaseConnection) -> anyhow::Result<Self> {
+        let client = connection.establish().await?;
+        let repository = Self::new(client);
+        Ok(repository)
+    }
+
     pub fn new(client: Client) -> Self {
         ServantRepository {
             client: client,
