@@ -1,9 +1,10 @@
-use deadpool_postgres::Pool;
+use deadpool_postgres::{Client, Pool};
 
 use crate::app::config::ApplicationConfig;
 
-use anyhow::Result;
-use deadpool_postgres::Client;
+use super::DatabaseError;
+
+type Result<T, E = DatabaseError> = std::result::Result<T, E>;
 
 #[derive(Clone)]
 pub struct DatabaseConnection {
@@ -18,12 +19,14 @@ impl DatabaseConnection {
     }
 
     pub fn initialize(config: &ApplicationConfig) -> Result<Self> {
-        let pool = config.database.create_pool()?;
+        let pool = config.database.create_pool()
+            .or(Err(DatabaseError::InitializationFailed))?;
         Ok(Self::new(pool))
     }
 
     pub async fn establish(&self) -> Result<Client> {
-        let client = self.pool.get().await?;
+        let client = self.pool.get().await
+            .or(Err(DatabaseError::EstablishFailed))?;
         Ok(client)
     }
 }
