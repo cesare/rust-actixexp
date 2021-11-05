@@ -13,4 +13,10 @@ pub enum DatabaseError {
 
     #[error("Failed to establish connection")]
     EstablishFailed,
+
+    #[error("Not found")]
+    NotFound,
+
+    #[error("Query failed")]
+    QueryFailed,
 }

@@ -3,15 +3,15 @@ use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::http::header;
 use actix_web::web::{delete, get, post};
 use actix_web::{HttpResponse, Scope, web};
-use deadpool_postgres::{Pool};
 use serde_json::json;
 
 use crate::app::Result;
 use crate::app::config::ApplicationConfig;
-use crate::app::middlewares::IdentityValidator;
+use crate::app::context::Context;
 use crate::app::db::{CreateServantRequest, ServantRepository};
+use crate::app::middlewares::IdentityValidator;
 
-type DbPool = web::Data<Pool>;
+type Ctx = web::Data<Context>;
 
 fn create_cors(config: &ApplicationConfig) -> Cors {
     Cors::default()
@@ -33,15 +33,15 @@ pub fn create_scope(config: &ApplicationConfig) -> Scope<impl actix_service::Ser
         .route("/{id}", delete().to(destroy))
 }
 
-async fn create(db_pool: DbPool, form: web::Json<CreateServantRequest>) -> Result<HttpResponse> {
-    let repository = create_repository(db_pool).await?;
+async fn create(context: Ctx, form: web::Json<CreateServantRequest>) -> Result<HttpResponse> {
+    let repository = create_repository(&context).await?;
     let result = repository.create(form.into_inner()).await?;
     let response = HttpResponse::Created().json(result);
     Ok(response)
 }
 
-async fn list(db_pool: DbPool) -> Result<HttpResponse> {
-    let repository = create_repository(db_pool).await?;
+async fn list(context: Ctx) -> Result<HttpResponse> {
+    let repository = create_repository(&context).await?;
     let results = repository.list().await?;
     let response_json = json!({
         "servants": results,
@@ -50,23 +50,23 @@ async fn list(db_pool: DbPool) -> Result<HttpResponse> {
     Ok(response)
 }
 
-async fn show(db_pool: DbPool, path: web::Path<i32>) -> Result<HttpResponse> {
+async fn show(context: Ctx, path: web::Path<i32>) -> Result<HttpResponse> {
     let id = path.into_inner();
-    let repository = create_repository(db_pool).await?;
+    let repository = create_repository(&context).await?;
     let result = repository.show(id).await?;
     let response = HttpResponse::Ok().json(result);
     Ok(response)
 }
 
-async fn destroy(db_pool: DbPool, path: web::Path<i32>) -> Result<HttpResponse> {
+async fn destroy(context: Ctx, path: web::Path<i32>) -> Result<HttpResponse> {
     let id = path.into_inner();
-    let repository = create_repository(db_pool).await?;
+    let repository = create_repository(&context).await?;
     let result = repository.delete(id).await?;
     let response = HttpResponse::Ok().json(result);
     Ok(response)
 }
 
-async fn create_repository(pool: DbPool) -> Result<ServantRepository> {
-    let client = pool.get().await?;
-    Ok(ServantRepository::new(client))
+async fn create_repository(context: &Ctx) -> Result<ServantRepository> {
+    let repository = ServantRepository::initialize(&context.db).await?;
+    Ok(repository)
 }
