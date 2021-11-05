@@ -10,7 +10,7 @@ pub struct IdentityValidator {
 }
 
 impl IdentityValidator {
-    pub fn new(config: &ApplicationConfig) -> Self {
+    pub fn new(_config: &ApplicationConfig) -> Self {
         Self {
         }
     }

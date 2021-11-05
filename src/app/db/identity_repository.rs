@@ -41,6 +41,7 @@ impl IdentityRepository {
         }
     }
 
+    #[allow(dead_code)]
     pub async fn find_by_id(&self, id: &str) -> Result<Identity> {
         let statement =
             "select cast(id as varchar) as id, provider_identifier, alive
