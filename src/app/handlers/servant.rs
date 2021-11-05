@@ -5,13 +5,13 @@ use actix_web::web::{delete, get, post};
 use actix_web::{HttpResponse, Scope, web};
 use serde_json::json;
 
-use crate::app::Result;
 use crate::app::config::ApplicationConfig;
 use crate::app::context::Context;
 use crate::app::db::{CreateServantRequest, ServantRepository};
 use crate::app::middlewares::IdentityValidator;
 
 type Ctx = web::Data<Context>;
+type Result<T, E = actix_web::Error> = std::result::Result<T, E>;
 
 fn create_cors(config: &ApplicationConfig) -> Cors {
     Cors::default()
