@@ -22,17 +22,12 @@ pub struct IdentityRepository {
 }
 
 impl IdentityRepository {
-    #[allow(dead_code)]
     pub async fn initialize(db: &DatabaseConnection) -> std::result::Result<Self, DatabaseError> {
         let client = db.establish().await?;
         let repository = Self {
             client: client,
         };
         Ok(repository)
-    }
-
-    pub fn new(client: Client) -> Self {
-        Self { client: client }
     }
 
     pub async fn find_by_provider_identifier(&self, identifier: &str) -> Result<Option<Identity>> {
