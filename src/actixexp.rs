@@ -15,7 +15,6 @@ async fn main() -> anyhow::Result<()> {
     let config = args.load_config().await?;
     let context = Context::initialize(&config)?;
     let bind_address = config.server.bind_address();
-    let pool = config.database.create_pool()?;
     let session_key = config.app.raw_session_key()?;
 
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
@@ -28,7 +27,6 @@ async fn main() -> anyhow::Result<()> {
             .wrap(Logger::new("%a %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
             .wrap(session)
             .app_data(Data::new(context.clone()))
-            .app_data(Data::new(pool.clone()))
             .service(handlers::root::index)
             .service(handlers::servant::create_scope(&config))
             .service(handlers::auth::create_scope(&config))
