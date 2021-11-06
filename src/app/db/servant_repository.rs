@@ -24,14 +24,10 @@ pub struct ServantRepository {
 impl ServantRepository {
     pub async fn initialize(connection: &DatabaseConnection) -> Result<Self> {
         let client = connection.establish().await?;
-        let repository = Self::new(client);
-        Ok(repository)
-    }
-
-    pub fn new(client: Client) -> Self {
-        ServantRepository {
+        let repository = Self {
             client: client,
-        }
+        };
+        Ok(repository)
     }
 
     pub async fn create(&self, request: CreateServantRequest) -> Result<Servant> {
