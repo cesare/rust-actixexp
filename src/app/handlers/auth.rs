@@ -8,12 +8,13 @@ use actix_web::web::{Data, Form, delete, post, scope};
 use deadpool_postgres::{Pool};
 use serde_json::json;
 
+use crate::app::context::Context;
 use crate::app::models::Identity;
 use crate::app::models::auth::{Authentication, AuthenticationError, AuthorizationRequest, CallbackParams};
 use crate::app::config::ApplicationConfig;
 
 type Result = std::result::Result<HttpResponse, AuthenticationError>;
-type Config = Data<ApplicationConfig>;
+type Ctx = Data<Context>;
 
 impl ResponseError for AuthenticationError {
     fn error_response(&self) -> HttpResponse {
@@ -52,7 +53,9 @@ pub fn create_scope(config: &ApplicationConfig) -> Scope<impl ServiceFactory<Ser
         .route("/session", delete().to(signout))
 }
 
-async fn start(config: Config, session: Session) -> Result {
+async fn start(context: Ctx, session: Session) -> Result {
+    let config = &context.config;
+
     let auth_request = AuthorizationRequest::new();
     session.insert("auth-state", &auth_request.state)
         .or(Err(AuthenticationError::StateSavingFailed))?;
@@ -69,13 +72,15 @@ async fn start(config: Config, session: Session) -> Result {
 type Params = Form<CallbackParams>;
 type DbPool = Data<Pool>;
 
-async fn callback(config: Config, pool: DbPool, session: Session, params: Params) -> Result {
+async fn callback(context: Ctx, pool: DbPool, session: Session, params: Params) -> Result {
+    let config = &context.config;
+
     let key = "auth-state";
     let saved_state: Option<String> =
         session.get(key).or(Err(AuthenticationError::StateLoadingFailed))?;
     let _ = session.remove(key);
 
-    let auth = Authentication::new(config.into_inner(), pool.into_inner(), params.into_inner(), saved_state);
+    let auth = Authentication::new(config, pool.into_inner(), params.into_inner(), saved_state);
     let auth_result = auth.execute().await?;
 
     session.clear();

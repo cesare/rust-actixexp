@@ -80,15 +80,15 @@ pub enum AuthenticationError {
     IdentityRegistrationFailed,
 }
 
-pub struct Authentication {
-    config: Arc<ApplicationConfig>,
+pub struct Authentication<'a> {
+    config: &'a ApplicationConfig,
     pool: Arc<Pool>,
     params: CallbackParams,
     saved_state: Option<String>,
 }
 
-impl Authentication {
-    pub fn new(config: Arc<ApplicationConfig>, pool: Arc<Pool>, params: CallbackParams, saved_state: Option<String>) -> Self {
+impl<'a> Authentication<'a> {
+    pub fn new(config: &'a ApplicationConfig, pool: Arc<Pool>, params: CallbackParams, saved_state: Option<String>) -> Self {
         Self {
             config: config,
             pool: pool,
@@ -121,16 +121,16 @@ impl Authentication {
     }
 }
 
-struct TokenRequest {
-    config: Arc<ApplicationConfig>,
+struct TokenRequest<'a> {
+    config: &'a ApplicationConfig,
     code: String,
     state: String,
 }
 
-impl TokenRequest {
-    fn new(config: &Arc<ApplicationConfig>, code: String, state: String) -> Self {
+impl<'a> TokenRequest<'a> {
+    fn new(config: &'a ApplicationConfig, code: String, state: String) -> Self {
         Self {
-            config: config.clone(),
+            config: config,
             code: code,
             state: state,
         }
