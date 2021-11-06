@@ -4,6 +4,8 @@ use tokio_pg_mapper::FromTokioPostgresRow;
 
 use crate::app::models::Identity;
 
+use super::{DatabaseError, connection::DatabaseConnection};
+
 #[derive(Debug, Error)]
 pub enum IdentityRepositoryError {
     #[error("Failed to query database")]
@@ -20,6 +22,15 @@ pub struct IdentityRepository {
 }
 
 impl IdentityRepository {
+    #[allow(dead_code)]
+    pub async fn initialize(db: &DatabaseConnection) -> std::result::Result<Self, DatabaseError> {
+        let client = db.establish().await?;
+        let repository = Self {
+            client: client,
+        };
+        Ok(repository)
+    }
+
     pub fn new(client: Client) -> Self {
         Self { client: client }
     }

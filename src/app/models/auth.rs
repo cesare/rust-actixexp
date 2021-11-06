@@ -1,13 +1,12 @@
 use std::result::Result;
-use std::sync::Arc;
 
-use deadpool_postgres::Pool;
 use rand::{RngCore, SeedableRng};
 use rand::rngs::StdRng;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::app::config::ApplicationConfig;
+use crate::app::context::Context;
 use crate::app::db::identity_repository::IdentityRepository;
 use crate::app::models::Identity;
 
@@ -81,17 +80,15 @@ pub enum AuthenticationError {
 }
 
 pub struct Authentication<'a> {
-    config: &'a ApplicationConfig,
-    pool: Arc<Pool>,
+    context: &'a Context,
     params: CallbackParams,
     saved_state: Option<String>,
 }
 
 impl<'a> Authentication<'a> {
-    pub fn new(config: &'a ApplicationConfig, pool: Arc<Pool>, params: CallbackParams, saved_state: Option<String>) -> Self {
+    pub fn new(context: &'a Context, params: CallbackParams, saved_state: Option<String>) -> Self {
         Self {
-            config: config,
-            pool: pool,
+            context: context,
             params: params,
             saved_state: saved_state,
         }
@@ -103,12 +100,13 @@ impl<'a> Authentication<'a> {
             return Err(AuthenticationError::StateNotMatch)
         }
 
-        let token_response = TokenRequest::new(&self.config, self.params.code, self.params.state)
+        let config = &self.context.config;
+        let token_response = TokenRequest::new(config, self.params.code, self.params.state)
             .execute()
             .await?;
 
         let user_response = UserRequest::new(token_response.access_token).execute().await?;
-        let client = self.pool.get().await.or(Err(AuthenticationError::DatabaseConnectionFailed))?;
+        let client = self.context.db.establish().await.or(Err(AuthenticationError::DatabaseConnectionFailed))?;
         let identity = IdentityRepository::new(client).find_or_create(&user_response.id.to_string()).await.or(Err(AuthenticationError::IdentityRegistrationFailed))?;
 
         let result = AuthenticationResult {
