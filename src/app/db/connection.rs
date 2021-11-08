@@ -26,7 +26,7 @@ impl DatabaseConnection {
 
     pub async fn establish(&self) -> Result<Client> {
         let client = self.pool.get().await
-            .or(Err(DatabaseError::EstablishFailed))?;
+            .map_err(|e| DatabaseError::EstablishFailed {source: e})?;
         Ok(client)
     }
 }

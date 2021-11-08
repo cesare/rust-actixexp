@@ -11,8 +11,11 @@ pub enum DatabaseError {
     #[error("Failed to initialize connection")]
     InitializationFailed,
 
-    #[error("Failed to establish connection")]
-    EstablishFailed,
+    #[error("Failed to establish connection: {source}")]
+    EstablishFailed {
+        #[source]
+        source: deadpool_postgres::PoolError,
+    },
 
     #[error("Not found")]
     NotFound,
