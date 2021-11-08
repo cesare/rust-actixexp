@@ -17,6 +17,9 @@ pub enum DatabaseError {
     #[error("Not found")]
     NotFound,
 
-    #[error("Query failed")]
-    QueryFailed,
+    #[error("Query failed: {source}")]
+    QueryFailed {
+        #[source]
+        source: tokio_postgres::error::Error,
+    },
 }

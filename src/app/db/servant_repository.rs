@@ -54,7 +54,7 @@ impl ServantRepository {
 
     async fn query<T: ?Sized + ToStatement>(&'_ self, statement: &'_ T, params: &'_ [&'_ (dyn ToSql + Sync)]) -> Result<Vec<Servant>> {
         let rows = self.client.query(statement, params).await
-            .or(Err(DatabaseError::QueryFailed))?;
+            .map_err(|e| DatabaseError::QueryFailed { source: e })?;
 
         let servants = rows.iter()
             .map(|row| Servant::from_row_ref(row).unwrap())
