@@ -8,8 +8,11 @@ pub use servant_repository::{CreateServantRequest, ServantRepository};
 
 #[derive(Error, Debug)]
 pub enum DatabaseError {
-    #[error("Failed to initialize connection")]
-    InitializationFailed,
+    #[error("Failed to initialize connection: {source}")]
+    InitializationFailed {
+        #[source]
+        source: deadpool_postgres::CreatePoolError,
+    },
 
     #[error("Failed to establish connection: {source}")]
     EstablishFailed {

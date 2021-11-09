@@ -1,5 +1,4 @@
-use anyhow::Context;
-use deadpool_postgres::{Client, ManagerConfig, Pool, RecyclingMethod};
+use deadpool_postgres::{Client, ManagerConfig, Pool, RecyclingMethod, Runtime};
 use deadpool_postgres::Config as DeadpoolConfig;
 use tokio_postgres::NoTls;
 
@@ -22,12 +21,11 @@ impl DatabaseConnection {
     }
 
     pub fn initialize(config: &ApplicationConfig) -> Result<Self> {
-        let pool = Self::create_pool(&config.database)
-            .or(Err(DatabaseError::InitializationFailed))?;
+        let pool = Self::create_pool(&config.database)?;
         Ok(Self::new(pool))
     }
 
-    pub fn create_pool(config: &DatabaseConfig) -> anyhow::Result<Pool> {
+    pub fn create_pool(config: &DatabaseConfig) -> Result<Pool> {
         let mut pool_config = DeadpoolConfig::new();
         pool_config.host     = Some(config.host.to_owned());
         pool_config.dbname   = Some(config.database.to_owned());
@@ -37,8 +35,8 @@ impl DatabaseConnection {
         let manager_config = ManagerConfig { recycling_method: RecyclingMethod::Fast };
         pool_config.manager = Some(manager_config);
 
-        pool_config.create_pool(NoTls)
-            .with_context(|| "Failed to create database pool")
+        pool_config.create_pool(Some(Runtime::Tokio1), NoTls)
+            .map_err(|e| DatabaseError::InitializationFailed {source: e})
     }
 
     pub async fn establish(&self) -> Result<Client> {
