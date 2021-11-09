@@ -28,4 +28,10 @@ pub enum DatabaseError {
         #[source]
         source: tokio_postgres::error::Error,
     },
+
+    #[error("Failed to mapping row to object: {source}")]
+    ObjectMappingFailed {
+        #[from]
+        source: tokio_pg_mapper::Error,
+    }
 }

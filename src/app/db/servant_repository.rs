@@ -41,9 +41,14 @@ impl ServantRepository {
     }
 
     pub async fn show(&self, id: i32) -> Result<Servant> {
-        self.query("select id, name, class_name from servants where id = $1", &[&id]).await?
-            .pop()
-            .ok_or(DatabaseError::NotFound)
+        let statement = "select id, name, class_name from servants where id = $1";
+        let result = self.client.query_opt(statement, &[&id]).await
+            .map_err(|e| DatabaseError::QueryFailed { source: e })?;
+
+        match result {
+            Some(row) => Ok(Servant::from_row(row)?),
+            None => Err(DatabaseError::NotFound)
+        }
     }
 
     pub async fn delete(&self, id: i32) -> Result<Servant> {
