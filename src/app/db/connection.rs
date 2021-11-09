@@ -2,7 +2,7 @@ use deadpool_postgres::{Client, ManagerConfig, Pool, RecyclingMethod, Runtime};
 use deadpool_postgres::Config as DeadpoolConfig;
 use tokio_postgres::NoTls;
 
-use crate::app::config::{ApplicationConfig, DatabaseConfig};
+use crate::app::config::DatabaseConfig;
 
 use super::DatabaseError;
 
@@ -20,8 +20,8 @@ impl DatabaseConnection {
         }
     }
 
-    pub fn initialize(config: &ApplicationConfig) -> Result<Self> {
-        let pool = Self::create_pool(&config.database)?;
+    pub fn initialize(config: &DatabaseConfig) -> Result<Self> {
+        let pool = Self::create_pool(&config)?;
         Ok(Self::new(pool))
     }
 

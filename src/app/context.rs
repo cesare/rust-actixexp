@@ -10,7 +10,7 @@ pub struct Context {
 
 impl Context {
     pub fn initialize(config: &ApplicationConfig) -> Result<Self> {
-        let db = DatabaseConnection::initialize(config)?;
+        let db = DatabaseConnection::initialize(&config.database)?;
         let context = Self {
             config: config.clone(),
             db: db,
