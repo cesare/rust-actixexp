@@ -1,6 +1,7 @@
 use deadpool_postgres::Client;
 use serde::Deserialize;
 use tokio_pg_mapper::FromTokioPostgresRow;
+use tokio_postgres::Row;
 
 use crate::app::models::Servant;
 
@@ -32,7 +33,7 @@ impl ServantRepository {
         let statement = "insert into servants (name, class_name) values ($1, $2) returning id, name, class_name";
         let row = self.client.query_one(statement, &[&request.name, &request.class_name]).await
             .map_err(|e| DatabaseError::QueryFailed { source: e })?;
-        Ok(Servant::from_row(row)?)
+        row.try_into()
     }
 
     pub async fn list(&self) -> Result<Vec<Servant>> {
@@ -48,23 +49,25 @@ impl ServantRepository {
 
     pub async fn show(&self, id: i32) -> Result<Servant> {
         let statement = "select id, name, class_name from servants where id = $1";
-        let result = self.client.query_opt(statement, &[&id]).await
-            .map_err(|e| DatabaseError::QueryFailed { source: e })?;
-
-        match result {
-            Some(row) => Ok(Servant::from_row(row)?),
-            None => Err(DatabaseError::NotFound)
-        }
+        let row = self.client.query_opt(statement, &[&id]).await
+            .map_err(|e| DatabaseError::QueryFailed { source: e })?
+            .ok_or(DatabaseError::NotFound)?;
+        row.try_into()
     }
 
     pub async fn delete(&self, id: i32) -> Result<Servant> {
         let statement = "delete from servants where id = $1 returning id, name, class_name";
-        let result = self.client.query_opt(statement, &[&id]).await
-            .map_err(|e| DatabaseError::QueryFailed { source: e })?;
+        let row = self.client.query_opt(statement, &[&id]).await
+            .map_err(|e| DatabaseError::QueryFailed { source: e })?
+            .ok_or(DatabaseError::NotFound)?;
+        row.try_into()
+    }
+}
 
-        match result {
-            Some(row) => Ok(Servant::from_row(row)?),
-            None => Err(DatabaseError::NotFound)
-        }
+impl TryFrom<Row> for Servant {
+    type Error = DatabaseError;
+
+    fn try_from(value: Row) -> Result<Self, Self::Error> {
+        Ok(Self::from_row(value)?)
     }
 }
