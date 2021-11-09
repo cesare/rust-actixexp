@@ -25,7 +25,7 @@ impl DatabaseConnection {
         Ok(Self::new(pool))
     }
 
-    pub fn create_pool(config: &DatabaseConfig) -> Result<Pool> {
+    fn create_pool(config: &DatabaseConfig) -> Result<Pool> {
         let mut pool_config = DeadpoolConfig::new();
         pool_config.host     = Some(config.host.to_owned());
         pool_config.dbname   = Some(config.database.to_owned());
