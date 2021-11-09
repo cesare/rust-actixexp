@@ -12,11 +12,11 @@ mod database;
 mod frontend;
 mod server;
 
-use self::app::AppConfig;
-use self::auth::AuthConfig;
-use self::database::DatabaseConfig;
-use self::frontend::FrontendConfig;
-use self::server::ServerConfig;
+pub use self::app::AppConfig;
+pub use self::auth::AuthConfig;
+pub use self::database::DatabaseConfig;
+pub use self::frontend::FrontendConfig;
+pub use self::server::ServerConfig;
 
 #[derive(StructOpt)]
 #[structopt(name = "actixexp")]
