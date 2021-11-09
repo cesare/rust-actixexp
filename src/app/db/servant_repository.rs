@@ -1,8 +1,6 @@
 use deadpool_postgres::Client;
 use serde::Deserialize;
 use tokio_pg_mapper::FromTokioPostgresRow;
-use tokio_postgres::ToStatement;
-use tokio_postgres::types::ToSql;
 
 use crate::app::models::Servant;
 
@@ -38,7 +36,14 @@ impl ServantRepository {
     }
 
     pub async fn list(&self) -> Result<Vec<Servant>> {
-        self.query("select id, name, class_name from servants", &[]).await
+        let statement = "select id, name, class_name from servants";
+        let rows = self.client.query(statement, &[]).await
+            .map_err(|e| DatabaseError::QueryFailed { source: e })?;
+
+        let servants = rows.iter()
+            .map(|row| Servant::from_row_ref(row).unwrap())
+            .collect::<Vec<Servant>>();
+        Ok(servants)
     }
 
     pub async fn show(&self, id: i32) -> Result<Servant> {
@@ -61,15 +66,5 @@ impl ServantRepository {
             Some(row) => Ok(Servant::from_row(row)?),
             None => Err(DatabaseError::NotFound)
         }
-    }
-
-    async fn query<T: ?Sized + ToStatement>(&'_ self, statement: &'_ T, params: &'_ [&'_ (dyn ToSql + Sync)]) -> Result<Vec<Servant>> {
-        let rows = self.client.query(statement, params).await
-            .map_err(|e| DatabaseError::QueryFailed { source: e })?;
-
-        let servants = rows.iter()
-            .map(|row| Servant::from_row_ref(row).unwrap())
-            .collect::<Vec<Servant>>();
-        Ok(servants)
     }
 }
