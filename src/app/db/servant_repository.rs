@@ -31,15 +31,13 @@ impl ServantRepository {
 
     pub async fn create(&self, request: CreateServantRequest) -> Result<Servant> {
         let statement = "insert into servants (name, class_name) values ($1, $2) returning id, name, class_name";
-        let row = self.client.query_one(statement, &[&request.name, &request.class_name]).await
-            .map_err(|e| DatabaseError::QueryFailed { source: e })?;
+        let row = self.client.query_one(statement, &[&request.name, &request.class_name]).await?;
         row.try_into()
     }
 
     pub async fn list(&self) -> Result<Vec<Servant>> {
         let statement = "select id, name, class_name from servants";
-        let rows = self.client.query(statement, &[]).await
-            .map_err(|e| DatabaseError::QueryFailed { source: e })?;
+        let rows = self.client.query(statement, &[]).await?;
 
         let servants = rows.iter()
             .map(|row| Servant::from_row_ref(row).unwrap())
@@ -49,16 +47,14 @@ impl ServantRepository {
 
     pub async fn show(&self, id: i32) -> Result<Servant> {
         let statement = "select id, name, class_name from servants where id = $1";
-        let row = self.client.query_opt(statement, &[&id]).await
-            .map_err(|e| DatabaseError::QueryFailed { source: e })?
+        let row = self.client.query_opt(statement, &[&id]).await?
             .ok_or(DatabaseError::NotFound)?;
         row.try_into()
     }
 
     pub async fn delete(&self, id: i32) -> Result<Servant> {
         let statement = "delete from servants where id = $1 returning id, name, class_name";
-        let row = self.client.query_opt(statement, &[&id]).await
-            .map_err(|e| DatabaseError::QueryFailed { source: e })?
+        let row = self.client.query_opt(statement, &[&id]).await?
             .ok_or(DatabaseError::NotFound)?;
         row.try_into()
     }

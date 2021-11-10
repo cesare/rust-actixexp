@@ -25,7 +25,7 @@ pub enum DatabaseError {
 
     #[error("Query failed: {source}")]
     QueryFailed {
-        #[source]
+        #[from]
         source: tokio_postgres::error::Error,
     },
 
