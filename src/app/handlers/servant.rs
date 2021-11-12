@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use actix_cors::Cors;
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::http::header;
@@ -10,7 +12,7 @@ use crate::app::context::Context;
 use crate::app::db::{CreateServantRequest, ServantRepository};
 use crate::app::middlewares::IdentityValidator;
 
-type Ctx = web::Data<Context>;
+type Ctx = web::Data<Arc<Context>>;
 type Result<T, E = actix_web::Error> = std::result::Result<T, E>;
 
 fn create_cors(config: &ApplicationConfig) -> Cors {
