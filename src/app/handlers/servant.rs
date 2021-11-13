@@ -11,6 +11,7 @@ use crate::app::config::ApplicationConfig;
 use crate::app::context::Context;
 use crate::app::db::{CreateServantRequest, ServantRepository};
 use crate::app::middlewares::IdentityValidator;
+use crate::app::models::servant::ServantRegistration;
 
 type Ctx = web::Data<Arc<Context>>;
 type Result<T, E = actix_web::Error> = std::result::Result<T, E>;
@@ -36,9 +37,9 @@ pub fn create_scope(config: &ApplicationConfig) -> Scope<impl actix_service::Ser
 }
 
 async fn create(context: Ctx, form: web::Json<CreateServantRequest>) -> Result<HttpResponse> {
-    let repository = create_repository(&context).await?;
-    let result = repository.create(form.into_inner()).await?;
-    let response = HttpResponse::Created().json(result);
+    let registration = ServantRegistration::new(&context, &form.name, &form.class_name);
+    let servant = registration.execute().await?;
+    let response = HttpResponse::Created().json(servant);
     Ok(response)
 }
 

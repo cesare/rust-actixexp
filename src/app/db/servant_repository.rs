@@ -12,8 +12,8 @@ type Result<T, E = DatabaseError> = std::result::Result<T, E>;
 
 #[derive(Deserialize)]
 pub struct CreateServantRequest {
-    name: String,
-    class_name: String,
+    pub name: String,
+    pub class_name: String,
 }
 
 pub struct ServantRepository {
