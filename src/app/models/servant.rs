@@ -38,3 +38,23 @@ impl ServantRegistration {
     Ok(servant)
   }
 }
+
+pub struct ServantDeletion {
+  context: Arc<Context>,
+  id: i32,
+}
+
+impl ServantDeletion {
+  pub fn new(context: &Arc<Context>, id: i32) -> Self {
+    Self {
+      context: context.clone(),
+      id: id,
+    }
+  }
+
+  pub async fn execute(&self) -> Result<Servant, DatabaseError> {
+    let repository = ServantRepository::initialize(&self.context.db).await?;
+    let servant = repository.delete(self.id).await?;
+    Ok(servant)
+  }
+}
