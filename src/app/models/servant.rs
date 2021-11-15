@@ -57,6 +57,26 @@ impl ServantListing {
   }
 }
 
+pub struct ServantFetching {
+  context: Arc<Context>,
+  id: i32,
+}
+
+impl ServantFetching {
+  pub fn new(context: &Arc<Context>, id: i32) -> Self {
+    Self {
+      context: context.clone(),
+      id: id,
+    }
+  }
+
+  pub async fn execute(&self) -> Result<Servant, DatabaseError> {
+    let repository = ServantRepository::initialize(&self.context.db).await?;
+    let servants = repository.show(self.id).await?;
+    Ok(servants)
+  }
+}
+
 pub struct ServantDeletion {
   context: Arc<Context>,
   id: i32,
