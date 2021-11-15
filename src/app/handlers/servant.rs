@@ -9,7 +9,7 @@ use serde_json::json;
 
 use crate::app::config::ApplicationConfig;
 use crate::app::context::Context;
-use crate::app::db::{CreateServantRequest, ServantRepository};
+use crate::app::db::{CreateServantRequest};
 use crate::app::middlewares::IdentityValidator;
 use crate::app::models::servant::{ServantDeletion, ServantFetching, ServantListing, ServantRegistration};
 
@@ -67,9 +67,4 @@ async fn destroy(context: Ctx, path: web::Path<i32>) -> Result<HttpResponse> {
     let servant = deletion.execute().await?;
     let response = HttpResponse::Ok().json(servant);
     Ok(response)
-}
-
-async fn create_repository(context: &Ctx) -> Result<ServantRepository> {
-    let repository = ServantRepository::initialize(&context.db).await?;
-    Ok(repository)
 }
