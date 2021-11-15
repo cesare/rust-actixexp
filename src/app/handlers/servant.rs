@@ -11,7 +11,7 @@ use crate::app::config::ApplicationConfig;
 use crate::app::context::Context;
 use crate::app::db::{CreateServantRequest, ServantRepository};
 use crate::app::middlewares::IdentityValidator;
-use crate::app::models::servant::{ServantDeletion, ServantRegistration};
+use crate::app::models::servant::{ServantDeletion, ServantListing, ServantRegistration};
 
 type Ctx = web::Data<Arc<Context>>;
 type Result<T, E = actix_web::Error> = std::result::Result<T, E>;
@@ -44,10 +44,10 @@ async fn create(context: Ctx, form: web::Json<CreateServantRequest>) -> Result<H
 }
 
 async fn list(context: Ctx) -> Result<HttpResponse> {
-    let repository = create_repository(&context).await?;
-    let results = repository.list().await?;
+    let listing = ServantListing::new(&context);
+    let servants = listing.execute().await?;
     let response_json = json!({
-        "servants": results,
+        "servants": servants,
     });
     let response = HttpResponse::Ok().json(response_json);
     Ok(response)

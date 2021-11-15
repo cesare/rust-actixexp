@@ -39,6 +39,24 @@ impl ServantRegistration {
   }
 }
 
+pub struct ServantListing {
+  context: Arc<Context>,
+}
+
+impl ServantListing {
+  pub fn new(context: &Arc<Context>) -> Self {
+    Self {
+      context: context.clone(),
+    }
+  }
+
+  pub async fn execute(&self) -> Result<Vec<Servant>, DatabaseError> {
+    let repository = ServantRepository::initialize(&self.context.db).await?;
+    let servants = repository.list().await?;
+    Ok(servants)
+  }
+}
+
 pub struct ServantDeletion {
   context: Arc<Context>,
   id: i32,
