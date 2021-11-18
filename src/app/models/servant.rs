@@ -3,7 +3,9 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
-use crate::app::{context::Context, db::{CreateServantRequest, DatabaseError, ServantRepository}};
+use crate::app::{context::Context, db::{CreateServantRequest, ServantRepository}};
+
+use super::DomainError;
 
 #[derive(Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "servants")]
@@ -28,7 +30,7 @@ impl ServantRegistration {
     }
   }
 
-  pub async fn execute(&self) -> Result<Servant, DatabaseError> {
+  pub async fn execute(&self) -> Result<Servant, DomainError> {
     let repository = ServantRepository::initialize(&self.context.db).await?;
     let request = CreateServantRequest {
       name: self.name.to_owned(),
@@ -50,7 +52,7 @@ impl ServantListing {
     }
   }
 
-  pub async fn execute(&self) -> Result<Vec<Servant>, DatabaseError> {
+  pub async fn execute(&self) -> Result<Vec<Servant>, DomainError> {
     let repository = ServantRepository::initialize(&self.context.db).await?;
     let servants = repository.list().await?;
     Ok(servants)
@@ -70,7 +72,7 @@ impl ServantFetching {
     }
   }
 
-  pub async fn execute(&self) -> Result<Servant, DatabaseError> {
+  pub async fn execute(&self) -> Result<Servant, DomainError> {
     let repository = ServantRepository::initialize(&self.context.db).await?;
     let servants = repository.show(self.id).await?;
     Ok(servants)
@@ -90,7 +92,7 @@ impl ServantDeletion {
     }
   }
 
-  pub async fn execute(&self) -> Result<Servant, DatabaseError> {
+  pub async fn execute(&self) -> Result<Servant, DomainError> {
     let repository = ServantRepository::initialize(&self.context.db).await?;
     let servant = repository.delete(self.id).await?;
     Ok(servant)

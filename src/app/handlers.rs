@@ -1,22 +1,22 @@
 use actix_web::{HttpResponse, ResponseError};
 use serde_json::json;
 
-use super::db::DatabaseError;
+use super::models::DomainError;
 
 pub mod auth;
 pub mod root;
 pub mod servant;
 
-impl ResponseError for DatabaseError {
+impl ResponseError for DomainError {
     fn error_response(&self) -> HttpResponse {
         self.create_response()
     }
 }
 
-impl DatabaseError {
+impl DomainError {
     fn create_response(&self) -> HttpResponse {
         match self {
-            Self::NotFound => self.generic_not_found_response(),
+            Self::RecordNotFound => self.generic_not_found_response(),
             _ => self.generic_internal_server_error_response(),
         }
     }
