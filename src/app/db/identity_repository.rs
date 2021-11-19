@@ -1,28 +1,18 @@
 use deadpool_postgres::Client;
-use thiserror::Error;
 use tokio_pg_mapper::FromTokioPostgresRow;
 
 use crate::app::models::Identity;
 
 use super::{DatabaseError, connection::DatabaseConnection};
 
-#[derive(Debug, Error)]
-pub enum IdentityRepositoryError {
-    #[error("Failed to query database")]
-    QueryFailed(#[from] tokio_postgres::Error),
-
-    #[error("Unknown row returned")]
-    ObjectMappingFailed(#[from] tokio_pg_mapper::Error),
-}
-
-type Result<T> = std::result::Result<T, IdentityRepositoryError>;
+type Result<T, E = DatabaseError> = std::result::Result<T, E>;
 
 pub struct IdentityRepository {
     client: Client,
 }
 
 impl IdentityRepository {
-    pub async fn initialize(db: &DatabaseConnection) -> std::result::Result<Self, DatabaseError> {
+    pub async fn initialize(db: &DatabaseConnection) -> Result<Self> {
         let client = db.establish().await?;
         let repository = Self {
             client: client,
