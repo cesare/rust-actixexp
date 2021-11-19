@@ -1,5 +1,6 @@
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
+use tokio_postgres::Row;
 
 use crate::app::models::Identity;
 
@@ -28,7 +29,7 @@ impl IdentityRepository {
         let result = self.client.query_opt(statement, &[&identifier]).await?;
         match result {
             Some(row) => {
-                let identity = Identity::from_row_ref(&row)?;
+                let identity = row.try_into()?;
                 Ok(Some(identity))
             },
             None => {
@@ -44,8 +45,7 @@ impl IdentityRepository {
                 from identities where id = $1
                 limit 1";
         let row = self.client.query_one(statement, &[&id]).await?;
-        let identity = Identity::from_row_ref(&row)?;
-        Ok(identity)
+        row.try_into()
     }
 
     pub async fn create(&self, identifier: &str) -> Result<Identity> {
@@ -54,8 +54,7 @@ impl IdentityRepository {
                values (gen_random_uuid(), $1)
                returning id, provider_identifier, alive, registered_at";
         let row = self.client.query_one(statement, &[&identifier]).await?;
-        let identity = Identity::from_row_ref(&row)?;
-        Ok(identity)
+        row.try_into()
     }
 
     pub async fn find_or_create(&self, provider_identifier: &str) -> Result<Identity> {
@@ -64,5 +63,13 @@ impl IdentityRepository {
             Some(identity) => Ok(identity),
             None => self.create(provider_identifier).await,
         }
+    }
+}
+
+impl TryFrom<Row> for Identity {
+    type Error = DatabaseError;
+
+    fn try_from(value: Row) -> Result<Self, Self::Error> {
+        Ok(Self::from_row(value)?)
     }
 }
