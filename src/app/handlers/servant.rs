@@ -1,8 +1,8 @@
 use actix_cors::Cors;
 use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::http::header;
-use actix_web::web::{delete, get, post};
-use actix_web::{HttpResponse, Scope, web};
+use actix_web::web::{delete, get, post, scope, Data, Json, Path};
+use actix_web::{HttpResponse, Scope};
 use serde::Deserialize;
 use serde_json::json;
 
@@ -11,7 +11,7 @@ use crate::app::context::Context;
 use crate::app::middlewares::IdentityValidator;
 use crate::app::models::servant::{ServantDeletion, ServantFetching, ServantListing, ServantRegistration};
 
-type Ctx = web::Data<Context>;
+type Ctx = Data<Context>;
 type Result<T, E = actix_web::Error> = std::result::Result<T, E>;
 
 fn create_cors(config: &ApplicationConfig) -> Cors {
@@ -25,7 +25,7 @@ fn create_cors(config: &ApplicationConfig) -> Cors {
 pub fn create_scope(config: &ApplicationConfig) -> Scope<impl actix_service::ServiceFactory<ServiceRequest, InitError = (), Error = actix_web::Error, Response = ServiceResponse, Config = ()>> {
     let cors = create_cors(config);
     let identity_validator = IdentityValidator::new(config);
-    web::scope("/servants")
+    scope("/servants")
         .wrap(cors)
         .wrap(identity_validator)
         .route("", get().to(list))
@@ -40,7 +40,7 @@ struct CreateServantRequest {
     class_name: String,
 }
 
-async fn create(context: Ctx, form: web::Json<CreateServantRequest>) -> Result<HttpResponse> {
+async fn create(context: Ctx, form: Json<CreateServantRequest>) -> Result<HttpResponse> {
     let registration = ServantRegistration::new(&context, &form.name, &form.class_name);
     let servant = registration.execute().await?;
     let response = HttpResponse::Created().json(servant);
@@ -57,7 +57,7 @@ async fn list(context: Ctx) -> Result<HttpResponse> {
     Ok(response)
 }
 
-async fn show(context: Ctx, path: web::Path<i32>) -> Result<HttpResponse> {
+async fn show(context: Ctx, path: Path<i32>) -> Result<HttpResponse> {
     let id = path.into_inner();
     let fetching = ServantFetching::new(&context, id);
     let servant = fetching.execute().await?;
@@ -65,7 +65,7 @@ async fn show(context: Ctx, path: web::Path<i32>) -> Result<HttpResponse> {
     Ok(response)
 }
 
-async fn destroy(context: Ctx, path: web::Path<i32>) -> Result<HttpResponse> {
+async fn destroy(context: Ctx, path: Path<i32>) -> Result<HttpResponse> {
     let id = path.into_inner();
     let deletion = ServantDeletion::new(&context, id);
     let servant = deletion.execute().await?;
