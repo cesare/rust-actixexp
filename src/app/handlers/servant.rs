@@ -3,11 +3,11 @@ use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::http::header;
 use actix_web::web::{delete, get, post};
 use actix_web::{HttpResponse, Scope, web};
+use serde::Deserialize;
 use serde_json::json;
 
 use crate::app::config::ApplicationConfig;
 use crate::app::context::Context;
-use crate::app::db::{CreateServantRequest};
 use crate::app::middlewares::IdentityValidator;
 use crate::app::models::servant::{ServantDeletion, ServantFetching, ServantListing, ServantRegistration};
 
@@ -32,6 +32,12 @@ pub fn create_scope(config: &ApplicationConfig) -> Scope<impl actix_service::Ser
         .route("", post().to(create))
         .route("/{id}", get().to(show))
         .route("/{id}", delete().to(destroy))
+}
+
+#[derive(Deserialize)]
+struct CreateServantRequest {
+    name: String,
+    class_name: String,
 }
 
 async fn create(context: Ctx, form: web::Json<CreateServantRequest>) -> Result<HttpResponse> {

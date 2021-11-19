@@ -3,7 +3,8 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
-use crate::app::{context::Context, db::{CreateServantRequest, ServantRepository}};
+use crate::app::context::Context;
+use crate::app::db::servant_repository::{RegistrationDataset, ServantRepository};
 
 use super::DomainError;
 
@@ -32,11 +33,11 @@ impl ServantRegistration {
 
   pub async fn execute(&self) -> Result<Servant, DomainError> {
     let repository = ServantRepository::initialize(&self.context.db).await?;
-    let request = CreateServantRequest {
+    let dataset = RegistrationDataset {
       name: self.name.to_owned(),
       class_name: self.class_name.to_owned(),
     };
-    let servant = repository.create(request).await?;
+    let servant = repository.create(dataset).await?;
     Ok(servant)
   }
 }

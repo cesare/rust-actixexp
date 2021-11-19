@@ -1,5 +1,4 @@
 use deadpool_postgres::Client;
-use serde::Deserialize;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::Row;
 
@@ -10,8 +9,7 @@ use super::connection::DatabaseConnection;
 
 type Result<T, E = DatabaseError> = std::result::Result<T, E>;
 
-#[derive(Deserialize)]
-pub struct CreateServantRequest {
+pub struct RegistrationDataset {
     pub name: String,
     pub class_name: String,
 }
@@ -29,9 +27,9 @@ impl ServantRepository {
         Ok(repository)
     }
 
-    pub async fn create(&self, request: CreateServantRequest) -> Result<Servant> {
+    pub async fn create(&self, dataset: RegistrationDataset) -> Result<Servant> {
         let statement = "insert into servants (name, class_name) values ($1, $2) returning id, name, class_name";
-        let row = self.client.query_one(statement, &[&request.name, &request.class_name]).await?;
+        let row = self.client.query_one(statement, &[&dataset.name, &dataset.class_name]).await?;
         row.try_into()
     }
 
