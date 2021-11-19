@@ -40,8 +40,8 @@ struct CreateServantRequest {
     class_name: String,
 }
 
-async fn create(context: Ctx, form: Json<CreateServantRequest>) -> Result<HttpResponse> {
-    let registration = ServantRegistration::new(&context, &form.name, &form.class_name);
+async fn create(context: Ctx, request: Json<CreateServantRequest>) -> Result<HttpResponse> {
+    let registration = ServantRegistration::new(&context, &request.name, &request.class_name);
     let servant = registration.execute().await?;
     let response = HttpResponse::Created().json(servant);
     Ok(response)
