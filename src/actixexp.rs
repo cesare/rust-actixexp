@@ -1,13 +1,15 @@
 use actix_session::CookieSession;
 use actix_web::{App, HttpServer};
 use actix_web::middleware::Logger;
-use actix_web::web::Data;
+use actix_web::web::{scope, Data};
 use app::context::Context;
+use app::handlers::servant::create_cors;
 use env_logger::Env;
 
 mod app;
 use crate::app::config::AppArgs;
 use self::app::handlers::{self};
+use self::app::handlers::servant::servant_service_config;
 
 #[actix_rt::main]
 async fn main() -> anyhow::Result<()> {
@@ -28,8 +30,12 @@ async fn main() -> anyhow::Result<()> {
             .wrap(session)
             .app_data(Data::new(context.clone()))
             .service(handlers::root::index)
-            .service(handlers::servant::create_scope(&config))
             .service(handlers::auth::create_scope(&config))
+            .service(
+                scope("/servants")
+                    .wrap(create_cors(&config))
+                    .configure(servant_service_config)
+            )
     });
     server.bind(bind_address)?.run().await?;
 
