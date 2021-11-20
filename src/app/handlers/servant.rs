@@ -1,24 +1,13 @@
-use actix_cors::Cors;
-use actix_web::http::header;
 use actix_web::web::{delete, get, post, Data, Json, Path, ServiceConfig};
 use actix_web::HttpResponse;
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::app::config::ApplicationConfig;
 use crate::app::context::Context;
 use crate::app::models::servant::{ServantDeletion, ServantFetching, ServantListing, ServantRegistration};
 
 type Ctx = Data<Context>;
 type Result<T, E = actix_web::Error> = std::result::Result<T, E>;
-
-pub fn create_cors(config: &ApplicationConfig) -> Cors {
-    Cors::default()
-        .allowed_origin(&config.frontend.base_uri)
-        .allowed_methods(vec!["POST", "GET", "OPTIONS"])
-        .allowed_headers(vec![header::CONTENT_TYPE])
-        .supports_credentials()
-}
 
 pub fn servant_service_config(config: &mut ServiceConfig) {
     config

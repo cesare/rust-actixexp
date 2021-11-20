@@ -1,16 +1,11 @@
-use actix_cors::Cors;
-use actix_service::ServiceFactory;
 use actix_session::Session;
-use actix_web::{Error, HttpResponse, ResponseError, Scope};
-use actix_web::dev::{ServiceRequest, ServiceResponse};
-use actix_web::http::header;
-use actix_web::web::{Data, Form, delete, post, scope};
+use actix_web::{HttpResponse, ResponseError};
+use actix_web::web::{Data, Form, ServiceConfig, delete, post};
 use serde_json::json;
 
 use crate::app::context::Context;
 use crate::app::models::Identity;
 use crate::app::models::auth::{Authentication, AuthenticationError, AuthorizationRequest, CallbackParams};
-use crate::app::config::ApplicationConfig;
 
 type Result = std::result::Result<HttpResponse, AuthenticationError>;
 type Ctx = Data<Context>;
@@ -34,22 +29,11 @@ impl ResponseError for AuthenticationError {
     }
 }
 
-fn create_cors(config: &ApplicationConfig) -> Cors {
-    Cors::default()
-        .allowed_origin(&config.frontend.base_uri)
-        .allowed_methods(vec!["POST", "GET", "OPTIONS"])
-        .allowed_headers(vec![header::CONTENT_TYPE])
-        .supports_credentials()
-}
-
-pub fn create_scope(config: &ApplicationConfig) -> Scope<impl ServiceFactory<ServiceRequest, InitError = (), Error = Error, Response = ServiceResponse, Config = ()>> {
-    let cors = create_cors(config);
-    scope("/auth")
-        .app_data(Data::new(config.clone()))
-        .wrap(cors)
+pub fn auth_service_config(config: &mut ServiceConfig) {
+    config
         .route("", post().to(start))
         .route("/callback", post().to(callback))
-        .route("/session", delete().to(signout))
+        .route("/session", delete().to(signout));
 }
 
 async fn start(context: Ctx, session: Session) -> Result {

@@ -1,15 +1,26 @@
+use actix_cors::Cors;
+use actix_web::http::header;
 use actix_session::CookieSession;
 use actix_web::{App, HttpServer};
 use actix_web::middleware::Logger;
 use actix_web::web::{scope, Data};
-use app::context::Context;
-use app::handlers::servant::create_cors;
 use env_logger::Env;
 
 mod app;
-use crate::app::config::AppArgs;
+use self::app::config::ApplicationConfig;
+use self::app::context::Context;
+use self::app::config::AppArgs;
 use self::app::handlers::{self};
+use self::app::handlers::auth::auth_service_config;
 use self::app::handlers::servant::servant_service_config;
+
+fn create_cors(config: &ApplicationConfig) -> Cors {
+    Cors::default()
+        .allowed_origin(&config.frontend.base_uri)
+        .allowed_methods(vec!["POST", "GET", "OPTIONS"])
+        .allowed_headers(vec![header::CONTENT_TYPE])
+        .supports_credentials()
+}
 
 #[actix_rt::main]
 async fn main() -> anyhow::Result<()> {
@@ -23,17 +34,21 @@ async fn main() -> anyhow::Result<()> {
 
     let server = HttpServer::new(move || {
         let session = CookieSession::signed(&session_key).secure(false);
+        let cors = create_cors(&config);
 
         App::new()
             .wrap(Logger::default())
             .wrap(Logger::new("%a %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
+            .wrap(cors)
             .wrap(session)
             .app_data(Data::new(context.clone()))
             .service(handlers::root::index)
-            .service(handlers::auth::create_scope(&config))
+            .service(
+                scope("/auth")
+                    .configure(auth_service_config)
+            )
             .service(
                 scope("/servants")
-                    .wrap(create_cors(&config))
                     .configure(servant_service_config)
             )
     });
