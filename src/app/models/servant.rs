@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -16,16 +14,16 @@ pub struct Servant {
   class_name: String,
 }
 
-pub struct ServantRegistration {
-  context: Arc<Context>,
+pub struct ServantRegistration<'a> {
+  context: &'a Context,
   name: String,
   class_name: String,
 }
 
-impl ServantRegistration {
-  pub fn new(context: &Arc<Context>, name: &str, class_name: &str) -> Self {
+impl<'a> ServantRegistration<'a> {
+  pub fn new(context: &'a Context, name: &str, class_name: &str) -> Self {
     Self {
-      context: context.clone(),
+      context: context,
       name: name.to_owned(),
       class_name: class_name.to_owned(),
     }
@@ -42,14 +40,14 @@ impl ServantRegistration {
   }
 }
 
-pub struct ServantListing {
-  context: Arc<Context>,
+pub struct ServantListing<'a> {
+  context: &'a Context,
 }
 
-impl ServantListing {
-  pub fn new(context: &Arc<Context>) -> Self {
+impl<'a> ServantListing<'a> {
+  pub fn new(context: &'a Context) -> Self {
     Self {
-      context: context.clone(),
+      context: context,
     }
   }
 
@@ -60,15 +58,15 @@ impl ServantListing {
   }
 }
 
-pub struct ServantFetching {
-  context: Arc<Context>,
+pub struct ServantFetching<'a> {
+  context: &'a Context,
   id: i32,
 }
 
-impl ServantFetching {
-  pub fn new(context: &Arc<Context>, id: i32) -> Self {
+impl<'a> ServantFetching<'a> {
+  pub fn new(context: &'a Context, id: i32) -> Self {
     Self {
-      context: context.clone(),
+      context: context,
       id: id,
     }
   }
@@ -80,15 +78,15 @@ impl ServantFetching {
   }
 }
 
-pub struct ServantDeletion {
-  context: Arc<Context>,
+pub struct ServantDeletion<'a> {
+  context: &'a Context,
   id: i32,
 }
 
-impl ServantDeletion {
-  pub fn new(context: &Arc<Context>, id: i32) -> Self {
+impl<'a> ServantDeletion<'a> {
+  pub fn new(context: &'a Context, id: i32) -> Self {
     Self {
-      context: context.clone(),
+      context: context,
       id: id,
     }
   }
