@@ -10,6 +10,7 @@ pub struct IdentityValidator {
 }
 
 impl IdentityValidator {
+    #[allow(dead_code)]
     pub fn new(_config: &ApplicationConfig) -> Self {
         Self {
         }
