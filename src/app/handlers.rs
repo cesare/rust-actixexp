@@ -3,9 +3,9 @@ use serde_json::json;
 
 use super::models::DomainError;
 
-pub mod auth;
 pub mod root;
-pub mod servant;
+mod auth;
+mod servant;
 
 pub use self::auth::auth_service_config;
 pub use self::servant::servant_service_config;
