@@ -11,8 +11,6 @@ use self::app::config::ApplicationConfig;
 use self::app::context::Context;
 use self::app::config::AppArgs;
 use self::app::handlers::{self};
-use self::app::handlers::auth::auth_service_config;
-use self::app::handlers::servant::servant_service_config;
 
 fn create_cors(config: &ApplicationConfig) -> Cors {
     Cors::default()
@@ -45,11 +43,11 @@ async fn main() -> anyhow::Result<()> {
             .service(handlers::root::index)
             .service(
                 scope("/auth")
-                    .configure(auth_service_config)
+                    .configure(handlers::auth_service_config)
             )
             .service(
                 scope("/servants")
-                    .configure(servant_service_config)
+                    .configure(handlers::servant_service_config)
             )
     });
     server.bind(bind_address)?.run().await?;

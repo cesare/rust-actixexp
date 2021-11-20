@@ -7,6 +7,9 @@ pub mod auth;
 pub mod root;
 pub mod servant;
 
+pub use self::auth::auth_service_config;
+pub use self::servant::servant_service_config;
+
 impl ResponseError for DomainError {
     fn error_response(&self) -> HttpResponse {
         self.create_response()
