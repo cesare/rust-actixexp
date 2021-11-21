@@ -6,10 +6,10 @@ use futures_util::future::{ok, FutureExt as _, LocalBoxFuture, Ready};
 
 use crate::app::config::ApplicationConfig;
 
-pub struct IdentityValidator {
+pub struct LoginRequired {
 }
 
-impl IdentityValidator {
+impl LoginRequired {
     #[allow(dead_code)]
     pub fn new(_config: &ApplicationConfig) -> Self {
         Self {
@@ -17,7 +17,7 @@ impl IdentityValidator {
     }
 }
 
-impl<S, B> Transform<S, ServiceRequest> for IdentityValidator
+impl<S, B> Transform<S, ServiceRequest> for LoginRequired
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>>,
     S::Future: 'static,
@@ -28,21 +28,21 @@ where
     type Response = ServiceResponse;
     type Error = S::Error;
     type InitError = ();
-    type Transform = IdentityValidatorMiddleware<S>;
+    type Transform = LoginRequiredMiddleware<S>;
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
-        ok(IdentityValidatorMiddleware {
+        ok(LoginRequiredMiddleware {
             service: service,
         })
     }
 }
 
-pub struct IdentityValidatorMiddleware<S> {
+pub struct LoginRequiredMiddleware<S> {
     service: S,
 }
 
-impl<S, B> Service<ServiceRequest> for IdentityValidatorMiddleware<S>
+impl<S, B> Service<ServiceRequest> for LoginRequiredMiddleware<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>>,
     S::Future: 'static,
