@@ -1,3 +1,3 @@
-mod identity_validator;
+mod login_required;
 
-pub use identity_validator::LoginRequired;
+pub use login_required::LoginRequired;
