@@ -1,17 +1,17 @@
 use std::error::Error as StdError;
 
+use actix_session::UserSession;
+use actix_web::HttpResponse;
 use actix_web::body::{AnyBody, MessageBody};
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
 use futures_util::future::{ok, FutureExt as _, LocalBoxFuture, Ready};
-
-use crate::app::config::ApplicationConfig;
+use serde_json::json;
 
 pub struct LoginRequired {
 }
 
 impl LoginRequired {
-    #[allow(dead_code)]
-    pub fn new(_config: &ApplicationConfig) -> Self {
+    pub fn new() -> Self {
         Self {
         }
     }
@@ -57,11 +57,50 @@ where
     actix_service::forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
+        let validator = LoginValidator::new(&req);
+        let login_status = validator.execute();
+        if let Err(res) = login_status {
+            let response = req.into_response(res);
+            return Box::pin(ok(response))
+        }
+
         let fut = self.service.call(req);
         async move {
             let res = fut.await?;
             Ok(res.map_body(|_, body| AnyBody::from_message(body)))
         }
         .boxed_local()
+    }
+}
+
+struct LoginValidator<'a> {
+    request: &'a ServiceRequest,
+}
+
+impl<'a> LoginValidator<'a> {
+    fn new(request: &'a ServiceRequest) -> Self {
+        Self {
+            request: request,
+        }
+    }
+
+    fn execute(&self) -> std::result::Result<(), HttpResponse> {
+        let session = self.request.get_session();
+        let value = session.get::<String>("id");
+        match value {
+            Ok(Some(_id)) => Ok(()),
+            Ok(None) => {
+                let response = HttpResponse::Unauthorized().json(json!({
+                    "error": "login required",
+                }));
+                Err(response)
+            },
+            Err(_error) => {
+                let response = HttpResponse::InternalServerError().json(json!({
+                    "error": "internal server error",
+                }));
+                Err(response)
+            }
+        }
     }
 }

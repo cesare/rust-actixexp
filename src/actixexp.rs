@@ -4,6 +4,7 @@ use actix_session::CookieSession;
 use actix_web::{App, HttpServer};
 use actix_web::middleware::Logger;
 use actix_web::web::{scope, Data};
+use app::middlewares::LoginRequired;
 use env_logger::Env;
 
 mod app;
@@ -33,6 +34,7 @@ async fn main() -> anyhow::Result<()> {
     let server = HttpServer::new(move || {
         let session = CookieSession::signed(&session_key).secure(false);
         let cors = create_cors(&config);
+        let login_required = LoginRequired::new();
 
         App::new()
             .wrap(Logger::default())
@@ -47,6 +49,7 @@ async fn main() -> anyhow::Result<()> {
             )
             .service(
                 scope("/servants")
+                    .wrap(login_required)
                     .configure(handlers::servant_service_config)
             )
     });
