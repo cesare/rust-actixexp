@@ -6,6 +6,7 @@ use super::models::DomainError;
 pub mod root;
 mod auth;
 mod servant;
+pub mod sessions;
 
 pub use self::auth::auth_service_config;
 pub use self::servant::servant_service_config;

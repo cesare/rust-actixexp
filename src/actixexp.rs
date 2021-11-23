@@ -3,7 +3,7 @@ use actix_web::http::header;
 use actix_session::CookieSession;
 use actix_web::{App, HttpServer};
 use actix_web::middleware::Logger;
-use actix_web::web::{scope, Data};
+use actix_web::web::{post, resource, scope, Data};
 use app::middlewares::LoginRequired;
 use env_logger::Env;
 
@@ -51,6 +51,10 @@ async fn main() -> anyhow::Result<()> {
                 scope("/servants")
                     .wrap(login_required)
                     .configure(handlers::servant_service_config)
+            )
+            .service(
+                resource("/signout")
+                    .route(post().to(handlers::sessions::signout))
             )
     });
     server.bind(bind_address)?.run().await?;
