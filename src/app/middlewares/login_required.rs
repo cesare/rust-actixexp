@@ -67,7 +67,7 @@ where
         let fut = self.service.call(req);
         async move {
             let res = fut.await?;
-            Ok(res.map_body(|_, body| AnyBody::from_message(body)))
+            Ok(res.map_body(|_, body| AnyBody::new_boxed(body)))
         }
         .boxed_local()
     }
