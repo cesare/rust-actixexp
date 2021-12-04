@@ -231,7 +231,6 @@ dependencies = [
  "env_logger",
  "futures-util",
  "hmac 0.11.0",
- "jwt",
  "rand",
  "reqwest",
  "serde",
@@ -1053,21 +1052,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7cc9ffccd38c451a86bf13657df244e9c3f37493cce8e5e21e940963777acc84"
 dependencies = [
  "wasm-bindgen",
-]
-
-[[package]]
-name = "jwt"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98328bb4f360e6b2ceb1f95645602c7014000ef0c3809963df8ad3a3a09f8d99"
-dependencies = [
- "base64",
- "crypto-mac 0.11.1",
- "digest",
- "hmac 0.11.0",
- "serde",
- "serde_json",
- "sha2",
 ]
 
 [[package]]
