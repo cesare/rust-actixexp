@@ -14,6 +14,73 @@ pub struct Servant {
   class_name: String,
 }
 
+pub enum ServantClass {
+  Saber,
+  Archer,
+  Lancer,
+  Rider,
+  Caster,
+  Assassin,
+  Berserker,
+  Ruler,
+  Avenger,
+  Mooncancer,
+  Alterego,
+  Foreigner,
+  Pretender,
+  Shielder,
+}
+
+impl From<ServantClass> for String {
+  fn from(clazz: ServantClass) -> String {
+    let string_representation = match clazz {
+      ServantClass::Saber      => "saber",
+      ServantClass::Archer     => "archer",
+      ServantClass::Lancer     => "lancer",
+      ServantClass::Rider      => "rider",
+      ServantClass::Caster     => "caster",
+      ServantClass::Assassin   => "assassin",
+      ServantClass::Berserker  => "berserker",
+      ServantClass::Ruler      => "ruler",
+      ServantClass::Avenger    => "avenger",
+      ServantClass::Mooncancer => "mooncancer",
+      ServantClass::Alterego   => "alterego",
+      ServantClass::Foreigner  => "foreigner",
+      ServantClass::Pretender  => "pretender",
+      ServantClass::Shielder   => "shielder",
+    };
+    string_representation.to_owned()
+  }
+}
+
+impl TryFrom<&str> for ServantClass {
+  type Error = ServantClassConversionError;
+
+  fn try_from(value: &str) -> Result<Self, Self::Error> {
+    match value {
+      "saber"      => Ok(Self::Saber),
+      "archer"     => Ok(Self::Archer),
+      "lancer"     => Ok(Self::Lancer),
+      "rider"      => Ok(Self::Rider),
+      "caster"     => Ok(Self::Caster),
+      "assassin"   => Ok(Self::Assassin),
+      "berserker"  => Ok(Self::Berserker),
+      "ruler"      => Ok(Self::Ruler),
+      "avenger"    => Ok(Self::Avenger),
+      "mooncancer" => Ok(Self::Mooncancer),
+      "alterego"   => Ok(Self::Alterego),
+      "foreigner"  => Ok(Self::Foreigner),
+      "pretender"  => Ok(Self::Pretender),
+      "shielder"   => Ok(Self::Shielder),
+      _ => Err(ServantClassConversionError::UnknownClass)
+    }
+  }
+}
+
+pub enum ServantClassConversionError {
+  UnknownClass,
+}
+
 pub struct ServantRegistration<'a> {
   context: &'a Context,
   name: String,
