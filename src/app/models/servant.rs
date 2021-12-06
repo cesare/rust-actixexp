@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
 use crate::app::context::Context;
@@ -14,6 +14,8 @@ pub struct Servant {
     class_name: String,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum ServantClass {
     Saber,
     Archer,
@@ -29,66 +31,6 @@ pub enum ServantClass {
     Foreigner,
     Pretender,
     Shielder,
-}
-
-impl From<&ServantClass> for String {
-    fn from(clazz: &ServantClass) -> String {
-        let string_representation = match clazz {
-            ServantClass::Saber      => "saber",
-            ServantClass::Archer     => "archer",
-            ServantClass::Lancer     => "lancer",
-            ServantClass::Rider      => "rider",
-            ServantClass::Caster     => "caster",
-            ServantClass::Assassin   => "assassin",
-            ServantClass::Berserker  => "berserker",
-            ServantClass::Ruler      => "ruler",
-            ServantClass::Avenger    => "avenger",
-            ServantClass::Mooncancer => "mooncancer",
-            ServantClass::Alterego   => "alterego",
-            ServantClass::Foreigner  => "foreigner",
-            ServantClass::Pretender  => "pretender",
-            ServantClass::Shielder   => "shielder",
-        };
-        string_representation.to_owned()
-    }
-}
-
-impl TryFrom<&str> for ServantClass {
-    type Error = ServantClassConversionError;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            "saber"      => Ok(Self::Saber),
-            "archer"     => Ok(Self::Archer),
-            "lancer"     => Ok(Self::Lancer),
-            "rider"      => Ok(Self::Rider),
-            "caster"     => Ok(Self::Caster),
-            "assassin"   => Ok(Self::Assassin),
-            "berserker"  => Ok(Self::Berserker),
-            "ruler"      => Ok(Self::Ruler),
-            "avenger"    => Ok(Self::Avenger),
-            "mooncancer" => Ok(Self::Mooncancer),
-            "alterego"   => Ok(Self::Alterego),
-            "foreigner"  => Ok(Self::Foreigner),
-            "pretender"  => Ok(Self::Pretender),
-            "shielder"   => Ok(Self::Shielder),
-            _ => Err(ServantClassConversionError::UnknownClass)
-        }
-    }
-}
-
-impl Serialize for ServantClass {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let name: String = self.into();
-        serializer.serialize_str(&name)
-    }
-}
-
-pub enum ServantClassConversionError {
-    UnknownClass,
 }
 
 pub struct ServantRegistration<'a> {
