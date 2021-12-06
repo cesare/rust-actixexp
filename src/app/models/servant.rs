@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 use tokio_pg_mapper_derive::PostgresMapper;
 
 use crate::app::context::Context;
@@ -31,8 +31,8 @@ pub enum ServantClass {
     Shielder,
 }
 
-impl From<ServantClass> for String {
-    fn from(clazz: ServantClass) -> String {
+impl From<&ServantClass> for String {
+    fn from(clazz: &ServantClass) -> String {
         let string_representation = match clazz {
             ServantClass::Saber      => "saber",
             ServantClass::Archer     => "archer",
@@ -74,6 +74,16 @@ impl TryFrom<&str> for ServantClass {
             "shielder"   => Ok(Self::Shielder),
             _ => Err(ServantClassConversionError::UnknownClass)
         }
+    }
+}
+
+impl Serialize for ServantClass {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let name: String = self.into();
+        serializer.serialize_str(&name)
     }
 }
 
