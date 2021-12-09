@@ -18,11 +18,11 @@ impl<'a> ServantRegistration<'a> {
       }
     }
 
-    pub async fn execute(&self) -> Result<Servant, DomainError> {
+    pub async fn execute(self) -> Result<Servant, DomainError> {
         let repository = ServantRepository::initialize(&self.context.db).await?;
         let dataset = RegistrationDataset {
-            name: self.name.to_owned(),
-            class_name: self.class_name.to_owned(),
+            name: self.name,
+            class_name: self.class_name,
         };
         let servant = repository.create(dataset).await?;
         Ok(servant)
