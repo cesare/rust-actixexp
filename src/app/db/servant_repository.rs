@@ -1,13 +1,21 @@
 use deadpool_postgres::Client;
+use serde::{Deserialize, Serialize};
 use tokio_pg_mapper::FromTokioPostgresRow;
+use tokio_pg_mapper_derive::PostgresMapper;
 use tokio_postgres::Row;
-
-use crate::app::models::Servant;
 
 use super::DatabaseError;
 use super::connection::DatabaseConnection;
 
 type Result<T, E = DatabaseError> = std::result::Result<T, E>;
+
+#[derive(Deserialize, PostgresMapper, Serialize)]
+#[pg_mapper(table = "servants")]
+pub struct Servant {
+    id: i32,
+    name: String,
+    class_name: String,
+}
 
 pub struct RegistrationDataset {
     pub name: String,
