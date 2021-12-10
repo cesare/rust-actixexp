@@ -9,11 +9,11 @@ use super::DatabaseError;
 type Result<T, E = DatabaseError> = std::result::Result<T, E>;
 
 #[derive(Clone)]
-pub struct DatabaseConnection {
+pub struct RepositoryAccess {
     pool: Pool,
 }
 
-impl DatabaseConnection {
+impl RepositoryAccess {
     fn new(pool: Pool) -> Self {
         Self {
             pool: pool,

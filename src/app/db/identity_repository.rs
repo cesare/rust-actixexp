@@ -4,7 +4,7 @@ use tokio_postgres::Row;
 
 use crate::app::models::Identity;
 
-use super::{DatabaseError, connection::DatabaseConnection};
+use super::{DatabaseError, connection::RepositoryAccess};
 
 type Result<T, E = DatabaseError> = std::result::Result<T, E>;
 
@@ -13,7 +13,7 @@ pub struct IdentityRepository {
 }
 
 impl IdentityRepository {
-    pub async fn initialize(db: &DatabaseConnection) -> Result<Self> {
+    pub async fn initialize(db: &RepositoryAccess) -> Result<Self> {
         let client = db.establish().await?;
         let repository = Self {
             client: client,
