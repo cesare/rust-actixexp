@@ -17,7 +17,8 @@ impl<'a> ServantDeletion<'a> {
     }
 
     pub async fn execute(&self) -> Result<Servant, DomainError> {
-        let repository = ServantRepository::initialize(&self.context.db).await?;
+        let connection = self.context.db.establish_connection().await?;
+        let repository = ServantRepository::new(&connection);
         let servant = repository.delete(self.id).await?;
         Ok(servant)
     }

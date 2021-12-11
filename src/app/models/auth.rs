@@ -106,7 +106,10 @@ impl<'a> Authentication<'a> {
             .await?;
 
         let user_response = UserRequest::new(token_response.access_token).execute().await?;
-        let repository = IdentityRepository::initialize(&self.context.db).await.or(Err(AuthenticationError::DatabaseConnectionFailed))?;
+
+        let connection = self.context.db.establish_connection().await
+            .or(Err(AuthenticationError::DatabaseConnectionFailed))?;
+        let repository = IdentityRepository::new(&connection);
         let identity = repository.find_or_create(&user_response.id.to_string()).await.or(Err(AuthenticationError::IdentityRegistrationFailed))?;
 
         let result = AuthenticationResult {

@@ -15,7 +15,8 @@ impl<'a> ServantListing<'a> {
     }
 
     pub async fn execute(&self) -> Result<Vec<Servant>, DomainError> {
-        let repository = ServantRepository::initialize(&self.context.db).await?;
+        let connection = self.context.db.establish_connection().await?;
+        let repository = ServantRepository::new(&connection);
         let servants = repository.list().await?;
         Ok(servants)
     }

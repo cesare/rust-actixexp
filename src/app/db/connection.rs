@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use deadpool_postgres::{Client, ManagerConfig, Pool, RecyclingMethod, Runtime};
 use deadpool_postgres::Config as DeadpoolConfig;
 use tokio_postgres::NoTls;
@@ -39,9 +41,29 @@ impl RepositoryAccess {
             .map_err(|e| DatabaseError::InitializationFailed {source: e})
     }
 
-    pub async fn establish(&self) -> Result<Client> {
+    pub async fn establish_connection(&self) -> Result<DatabaseConnection> {
         let client = self.pool.get().await
             .map_err(|e| DatabaseError::EstablishFailed {source: e})?;
-        Ok(client)
+        let connection = DatabaseConnection::new(client);
+        Ok(connection)
+    }
+}
+
+pub struct DatabaseConnection {
+    client: Client,
+}
+
+impl DatabaseConnection {
+    fn new(client: Client) -> Self {
+        Self {
+            client: client,
+        }
+    }
+}
+
+impl Deref for DatabaseConnection {
+    type Target = Client;
+    fn deref(&self) -> &Self::Target {
+        &self.client
     }
 }

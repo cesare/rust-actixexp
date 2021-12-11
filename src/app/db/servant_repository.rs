@@ -5,7 +5,7 @@ use tokio_pg_mapper_derive::PostgresMapper;
 use tokio_postgres::Row;
 
 use super::DatabaseError;
-use super::connection::RepositoryAccess;
+use super::connection::DatabaseConnection;
 
 type Result<T, E = DatabaseError> = std::result::Result<T, E>;
 
@@ -22,17 +22,15 @@ pub struct RegistrationDataset {
     pub class_name: String,
 }
 
-pub struct ServantRepository {
-    client: Client,
+pub struct ServantRepository<'a> {
+    client: &'a Client,
 }
 
-impl ServantRepository {
-    pub async fn initialize(connection: &RepositoryAccess) -> Result<Self> {
-        let client = connection.establish().await?;
-        let repository = Self {
-            client: client,
-        };
-        Ok(repository)
+impl<'a> ServantRepository<'a> {
+    pub fn new(connection: &'a DatabaseConnection) -> Self {
+        Self {
+            client: connection,
+        }
     }
 
     pub async fn create(&self, dataset: RegistrationDataset) -> Result<Servant> {

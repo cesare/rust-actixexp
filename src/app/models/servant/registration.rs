@@ -19,7 +19,8 @@ impl<'a> ServantRegistration<'a> {
     }
 
     pub async fn execute(self) -> Result<Servant, DomainError> {
-        let repository = ServantRepository::initialize(&self.context.db).await?;
+        let connection = self.context.db.establish_connection().await?;
+        let repository = ServantRepository::new(&connection);
         let dataset = RegistrationDataset {
             name: self.name,
             class_name: self.class_name,
