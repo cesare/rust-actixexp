@@ -2,7 +2,7 @@ use std::error::Error as StdError;
 
 use actix_session::UserSession;
 use actix_web::HttpResponse;
-use actix_web::body::{AnyBody, MessageBody};
+use actix_web::body::{BoxBody, MessageBody};
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
 use futures_util::future::{ok, FutureExt as _, LocalBoxFuture, Ready};
 use serde_json::json;
@@ -67,7 +67,7 @@ where
         let fut = self.service.call(req);
         async move {
             let res = fut.await?;
-            Ok(res.map_body(|_, body| AnyBody::new_boxed(body)))
+            Ok(res.map_body(|_, body| BoxBody::new(body)))
         }
         .boxed_local()
     }

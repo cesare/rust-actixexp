@@ -21,11 +21,12 @@ dependencies = [
 
 [[package]]
 name = "actix-cors"
-version = "0.6.0-beta.4"
+version = "0.6.0-beta.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10924f24839e08540bc12e404150646c7d5c83789b6d4e2f90f1046dd058d3fd"
+checksum = "ccc0e24e5768623f3f8439783a7fc8ad294fb6549859c31a2900b31b84df89f5"
 dependencies = [
  "actix-service",
+ "actix-utils",
  "actix-web",
  "derive_more",
  "futures-util",
@@ -36,9 +37,9 @@ dependencies = [
 
 [[package]]
 name = "actix-http"
-version = "3.0.0-beta.14"
+version = "3.0.0-beta.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "055b723746f19534fc5c9a210788686542986d6f1b9cb2900a297bb4c6619f3b"
+checksum = "a1ff7b149cc1b99967c22cb81c2c31f128ac88ed12bbf80c29c55a7511d46edb"
 dependencies = [
  "actix-codec",
  "actix-rt",
@@ -139,11 +140,12 @@ dependencies = [
 
 [[package]]
 name = "actix-session"
-version = "0.5.0-beta.4"
+version = "0.5.0-beta.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "400b78c528ff819f6af9237f205a75445f2eb211bea1bd1af9ee55b53a138442"
+checksum = "0ca678d889477e85902067c2a86a11ba13fd079cde74fc51199b72d2b79b1a11"
 dependencies = [
  "actix-service",
+ "actix-utils",
  "actix-web",
  "derive_more",
  "futures-util",
@@ -165,9 +167,9 @@ dependencies = [
 
 [[package]]
 name = "actix-web"
-version = "4.0.0-beta.13"
+version = "4.0.0-beta.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1657eb2ed5e8ef246b6e951bafb38644ca433042a65a44f02e5601083b71b895"
+checksum = "9387ea044357f12b606b8fad0652d3804ba498954f66ae5c677236cb0bd47db4"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -206,9 +208,9 @@ dependencies = [
 
 [[package]]
 name = "actix-web-codegen"
-version = "0.5.0-beta.5"
+version = "0.5.0-beta.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dfe80a8828fa88a0420dc8fdd4c16b8207326c917f17701881b063eadc2a8d3b"
+checksum = "30a90b7f6c2fde9a1fe3df4da758c2c3c9d620dfa3eae4da0b6925dc0a13444a"
 dependencies = [
  "actix-router",
  "proc-macro2",
@@ -844,9 +846,9 @@ dependencies = [
 
 [[package]]
 name = "h2"
-version = "0.3.7"
+version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fd819562fcebdac5afc5c113c3ec36f902840b70fd4fc458799c8ce4607ae55"
+checksum = "8f072413d126e57991455e0a922b31e4c8ba7c2ffbebf6b78b4f8521397d65cd"
 dependencies = [
  "bytes",
  "fnv",
