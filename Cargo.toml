@@ -9,11 +9,11 @@ name = "actixexp"
 path = "src/actixexp.rs"
 
 [dependencies]
-actix-cors = "0.6.0-beta.6"
+actix-cors = "0.6.0-beta.7"
 actix-rt = "~2.5.0"
 actix-service = "~2.0.0"
 actix-session = "0.5.0-beta.5"
-actix-web = "=4.0.0-beta.14"
+actix-web = "=4.0.0-beta.15"
 anyhow = "~1.0.38"
 base64 = "0.13.0"
 deadpool-postgres = "0.10.0"

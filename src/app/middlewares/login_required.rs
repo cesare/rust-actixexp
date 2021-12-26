@@ -1,7 +1,5 @@
-use std::error::Error as StdError;
-
 use actix_session::UserSession;
-use actix_web::HttpResponse;
+use actix_web::{Error, HttpResponse};
 use actix_web::body::{BoxBody, MessageBody};
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
 use futures_util::future::{ok, FutureExt as _, LocalBoxFuture, Ready};
@@ -23,7 +21,7 @@ where
     S::Future: 'static,
     S::Error: 'static,
     B: MessageBody + 'static,
-    B::Error: StdError,
+    B::Error: Into<Error>,
 {
     type Response = ServiceResponse;
     type Error = S::Error;
@@ -48,7 +46,7 @@ where
     S::Future: 'static,
     S::Error: 'static,
     B: MessageBody + 'static,
-    B::Error: StdError,
+    B::Error: Into<Error>,
 {
     type Response = ServiceResponse;
     type Error = S::Error;
