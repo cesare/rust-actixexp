@@ -37,7 +37,6 @@ async fn main() -> anyhow::Result<()> {
         let login_required = LoginRequired::new();
 
         App::new()
-            .wrap(Logger::default())
             .wrap(Logger::new("%a %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
             .wrap(cors)
             .wrap(session)
