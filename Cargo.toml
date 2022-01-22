@@ -10,10 +10,10 @@ path = "src/actixexp.rs"
 
 [dependencies]
 actix-cors = "0.6.0-beta.7"
-actix-rt = "~2.5.0"
+actix-rt = "2.6.0"
 actix-service = "~2.0.0"
 actix-session = "0.5.0-beta.7"
-actix-web = "=4.0.0-beta.18"
+actix-web = "=4.0.0-beta.21"
 anyhow = "~1.0.38"
 base64 = "0.13.0"
 deadpool-postgres = "0.10.0"
@@ -25,7 +25,7 @@ serde = "~1.0.120"
 serde_json = "1.0.64"
 structopt = "~0.3.21"
 thiserror = "~1.0.23"
-tokio = { version = "~1.5.0", features = ["fs", "macros", "rt-multi-thread"] }
+tokio = { version = "1.13.0", features = ["fs", "macros", "rt-multi-thread"] }
 tokio-pg-mapper = "~0.2.0"
 tokio-pg-mapper-derive = "~0.2.0"
 tokio-postgres = "~0.7.0"
