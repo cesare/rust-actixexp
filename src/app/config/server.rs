@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde_derive::Deserialize;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct ServerConfig {

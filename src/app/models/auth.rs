@@ -2,7 +2,7 @@ use std::result::Result;
 
 use rand::{RngCore, SeedableRng};
 use rand::rngs::StdRng;
-use serde::{Deserialize, Serialize};
+use serde_derive::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::app::config::ApplicationConfig;

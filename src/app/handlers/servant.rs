@@ -1,6 +1,6 @@
 use actix_web::web::{delete, get, post, Data, Json, Path, ServiceConfig};
 use actix_web::HttpResponse;
-use serde::Deserialize;
+use serde_derive::Deserialize;
 use serde_json::json;
 
 use crate::app::context::Context;

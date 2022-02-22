@@ -1,6 +1,6 @@
 use anyhow::Result;
 use structopt::StructOpt;
-use serde::Deserialize;
+use serde_derive::Deserialize;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
 

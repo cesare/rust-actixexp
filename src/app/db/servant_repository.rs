@@ -1,5 +1,5 @@
 use deadpool_postgres::Client;
-use serde::{Deserialize, Serialize};
+use serde_derive::{Deserialize, Serialize};
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_pg_mapper_derive::PostgresMapper;
 use tokio_postgres::Row;
