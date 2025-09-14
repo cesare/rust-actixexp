@@ -30,6 +30,7 @@ impl RepositoryAccess {
     fn create_pool(config: &DatabaseConfig) -> Result<Pool> {
         let mut pool_config = DeadpoolConfig::new();
         pool_config.host     = Some(config.host.to_owned());
+        pool_config.port     = Some(config.port.to_owned());
         pool_config.dbname   = Some(config.database.to_owned());
         pool_config.user     = Some(config.user.to_owned());
         pool_config.password = Some(config.password.to_owned());
