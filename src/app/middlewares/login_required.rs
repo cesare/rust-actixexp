@@ -1,4 +1,4 @@
-use actix_session::UserSession;
+use actix_session::{SessionExt};
 use actix_web::{Error, HttpResponse};
 use actix_web::body::{BoxBody, MessageBody};
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};

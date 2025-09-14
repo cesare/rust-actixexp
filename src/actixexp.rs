@@ -1,7 +1,8 @@
 use actix_cors::Cors;
 use actix_web::http::header;
-use actix_session::CookieSession;
+use actix_session::{SessionMiddleware, storage::CookieSessionStore};
 use actix_web::{App, HttpServer};
+use actix_web::cookie::Key;
 use actix_web::middleware::Logger;
 use actix_web::web::{post, resource, scope, Data};
 use app::middlewares::LoginRequired;
@@ -32,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
     let server = HttpServer::new(move || {
-        let session = CookieSession::signed(&session_key).secure(false);
+        let session = SessionMiddleware::new(CookieSessionStore::default(), Key::from(&session_key));
         let cors = create_cors(&config);
         let login_required = LoginRequired::new();
 
