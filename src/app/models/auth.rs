@@ -23,7 +23,7 @@ impl AuthorizationRequest {
     }
 
     fn generate_state() -> String {
-        let mut rng = StdRng::from_entropy();
+        let mut rng = StdRng::from_os_rng();
         let mut rs: [u8; 32] = [0; 32];
         rng.fill_bytes(&mut rs);
         URL_SAFE_NO_PAD.encode(rs)
