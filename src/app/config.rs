@@ -1,5 +1,5 @@
 use anyhow::Result;
-use structopt::StructOpt;
+use clap::Parser;
 use serde_derive::Deserialize;
 use tokio::fs::File;
 use tokio::io::AsyncReadExt;
@@ -18,16 +18,15 @@ pub use self::database::DatabaseConfig;
 pub use self::frontend::FrontendConfig;
 pub use self::server::ServerConfig;
 
-#[derive(StructOpt)]
-#[structopt(name = "actixexp")]
+#[derive(Parser)]
 pub struct AppArgs {
-    #[structopt(short, long, parse(from_os_str))]
+    #[arg(short, long)]
     config_file: PathBuf,
 }
 
 impl AppArgs {
     pub fn new() -> Self {
-        Self::from_args()
+        Self::parse()
     }
 
     pub async fn load_config(&self) -> Result<ApplicationConfig> {
