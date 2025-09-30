@@ -25,7 +25,7 @@ reqwest = { version = "0.12.23", features = ['json'] }
 serde = "~1.0.227"
 serde_derive = "~1.0.225"
 serde_json = "1.0.145"
-thiserror = "~2.0.16"
+thiserror = "~2.0.17"
 tokio = { version = "1.47.1", features = ["fs", "macros", "rt-multi-thread"] }
 tokio-pg-mapper = "~0.2.0"
 tokio-pg-mapper-derive = "~0.2.0"
