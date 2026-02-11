@@ -1,8 +1,7 @@
 use std::result::Result;
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
-use rand::{RngCore, SeedableRng};
-use rand::rngs::StdRng;
+use rand::{RngExt, rngs::StdRng};
 use serde_derive::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -23,9 +22,9 @@ impl AuthorizationRequest {
     }
 
     fn generate_state() -> String {
-        let mut rng = StdRng::from_os_rng();
+        let mut rng: StdRng = rand::make_rng();
         let mut rs: [u8; 32] = [0; 32];
-        rng.fill_bytes(&mut rs);
+        rng.fill(&mut rs);
         URL_SAFE_NO_PAD.encode(rs)
     }
 }
